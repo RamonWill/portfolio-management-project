@@ -1,21 +1,23 @@
-import requests
 import pandas as pd
 from oandapyV20 import API
 import oandapyV20.endpoints.accounts as accounts
 import oandapyV20.endpoints.pricing as pricing
 import oandapyV20.endpoints.orders as orders
 import oandapyV20.endpoints.positions as positions
+# import requests
 
-#the import error exception is raised if i run this file from prmsystem_api
+# documentation - https://oanda-api-v20.readthedocs.io/en/latest/
+# the import error exception is raised if i run this file from prmsystem_api
+
 try:
     import config
 except ImportError:
     import APIs.config as config
-# documnetation help - https://oanda-api-v20.readthedocs.io/en/latest/endpoints/pricing/pricinginfo.html
+
 
 api_key = config.oanda_key
 accountID = config.oanda_account
-url = 	"https://api-fxpractice.oanda.com"
+url = "https://api-fxpractice.oanda.com"
 
 client = API(access_token=api_key)
 
@@ -41,7 +43,6 @@ def Oanda_acc_summary():
 
     account_details = account_details.response
 
-
     dataframe_account = pd.DataFrame(account_details).loc[["NAV", "balance", "currency"]]
     dataframe_account = dataframe_account.drop(["lastTransactionID"], axis=1)
 
@@ -56,14 +57,13 @@ def Oanda_prices():
     instrument_keys_sorted = sorted(instrument_keys)
     instrument_keys_sorted = ",".join(instrument_keys_sorted)
 
-    params_prices = {"instruments":instrument_keys_sorted}
+    params_prices = {"instruments": instrument_keys_sorted}
     pricing_details = pricing.PricingInfo(accountID=accountID, params=params_prices)
     client.request(pricing_details)
 
     pricing_details = pricing_details.response
 
     pricing_details = pricing_details["prices"]
-
 
     list_prices = []
 
@@ -72,8 +72,9 @@ def Oanda_prices():
         instrument_name = instrument_names.get(instrument)
         bid_price = header["bids"][0]["price"]
         ask_price = header["asks"][0]["price"]
-        list_prices.append({"Instrument":instrument_name, "Bid Price":bid_price,
-        "Ask Price":ask_price})
+        list_prices.append({"Instrument": instrument_name,
+                            "Bid Price": bid_price,
+                            "Ask Price": ask_price})
 
     dataframe_prices = pd.DataFrame(list_prices)
 
@@ -83,7 +84,7 @@ def Oanda_prices():
 
 
 def Market_order(units, instrument, password):
-# data must be organised as a JSON orderbody data (JSON (required)) – json orderbody to send
+    # data must be organised as a JSON orderbody data (JSON (required)) to send
     """Send a trade order to Oanda and return a JSON response of the trade
     confirmation
 
@@ -105,7 +106,6 @@ def Market_order(units, instrument, password):
         for keys, values in instrument_names.items():
             if instrument == values:
                 oanda_instrument = keys
-
 
         datax = {
   "order": {
@@ -138,7 +138,7 @@ def Execution_details(order_details):
     fil_type = fil["orderFillTransaction"]["type"]
     fil_execution_time = fil["orderFillTransaction"]["time"].replace("T", " ")
     fil_transid = fil["orderFillTransaction"]["requestID"]
-    fil_account =fil["orderFillTransaction"]["accountID"]
+    fil_account = fil["orderFillTransaction"]["accountID"]
     fil_id = fil["orderFillTransaction"]["orderID"]
 
     fil_instrument = fil["orderFillTransaction"]["instrument"]
@@ -178,8 +178,11 @@ def Open_positions(detail):
             short_pnl = header["short"]["pl"]
             short_unrel_pnl = header["short"]["unrealizedPL"]
 
-            list_positions.append({"Instrument":instrument_name, "Units":short_units, "Average Price":short_avg_price,
-            "Unrealised P&L":short_unrel_pnl, "P&L":short_pnl})
+            list_positions.append({"Instrument": instrument_name,
+                                   "Units": short_units,
+                                   "Average Price": short_avg_price,
+                                   "Unrealised P&L": short_unrel_pnl,
+                                   "P&L": short_pnl})
 
         elif int(header["long"]["units"]) > 0:
 
@@ -188,8 +191,11 @@ def Open_positions(detail):
             long_pnl = header["long"]["pl"]
             long_unrel_pnl = header["long"]["unrealizedPL"]
 
-            list_positions.append({"Instrument":instrument_name, "Units":long_units, "Average Price":long_avg_price,
-            "Unrealised P&L":long_unrel_pnl, "P&L":long_pnl})
+            list_positions.append({"Instrument": instrument_name,
+                                   "Units": long_units,
+                                   "Average Price": long_avg_price,
+                                   "Unrealised P&L": long_unrel_pnl,
+                                   "P&L": long_pnl})
 
         else:
             pass

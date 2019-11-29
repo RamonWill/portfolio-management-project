@@ -5,33 +5,34 @@ try:
     import config
 except ImportError:
     import APIs.config as config
-#This is the financial news dataframe on the homepage
+
 api_key = config.news_key
 
 
 def latest_news_headlines():
     """Request bloomberg articles from News API and return a dataframe"""
-    url_news = "https://newsapi.org/v2/top-headlines?"
 
-    params_news = {"apiKey":api_key,
-    "sources":"bloomberg", "pagesize":10}
+    url = "https://newsapi.org/v2/top-headlines?"
 
-    response_news = requests.get(url_news, params=params_news)
+    params = {"apiKey": api_key,
+              "sources": "bloomberg",
+              "pagesize": 10}
 
-    latest_news = response_news.json()
+    response = requests.get(url, params=params)
+    news = response.json()
+    news_articles = news["articles"]
+    formatted_articles = []
 
-    latest_news_articles = latest_news["articles"]
+    for article in news_articles:
+        source = article["source"]["name"]
+        headline = "{}...".format(article["title"][0:46])
+        link = article["url"]
+        formatted_articles.append({"Source": source,
+                                   "Title": headline,
+                                   "Link": link})
 
+    news_dataframe = pd.DataFrame(formatted_articles)
+    news_dataframe = news_dataframe[["Title", "Source", "Link"]]
+    # pd.set_option('display.max_columns', 3)
 
-    latest_news_articles_formatted = []
-    #next reiterate through the data and populate it into a dataframe
-    for item in latest_news_articles:
-        latest_news_articles_formatted.append({"Source":item["source"]["name"],
-        "Title":"{}...".format(item["title"][0:46]), "Link":item["url"]})
-
-    latest_news_articles_dataframe = pd.DataFrame(latest_news_articles_formatted)
-    latest_news_articles_dataframe = latest_news_articles_dataframe[["Title", "Source", "Link"]]
-    pd.set_option('display.max_columns', 3)
-
-
-    return latest_news_articles_dataframe
+    return news_dataframe

@@ -1,45 +1,49 @@
-def Convertprice(user_input):
-    """Converts a float value to 32nds or a 32nds to a float value"""
-
-    try:
-        if float(user_input)>0 and type(float(user_input)) == type(0.1):
-            treausry_input = int(user_input.partition(".")[0])
-            user_input = float(user_input)
-            tick_display = str((user_input-treausry_input)*32)
-            if ".5" in tick_display:
-                tick_display = tick_display.partition(".")[0]
-                if float(tick_display) < 10:
-                    return "{}-0{}+".format(treausry_input,tick_display)
-                else:
-                    return "{}-{}+".format(treausry_input,tick_display)
-
+def Decimal_to_treasury(price):
+    """Converts a float value to 32nds value"""
+    if float(price) > 0:
+        integral = int(price.partition(".")[0])
+        price = float(price)
+        decimal_part = str((price-integral)*32)
+        if ".5" in decimal_part:
+            decimal_part = decimal_part.partition(".")[0]
+            if float(decimal_part) < 10:
+                return "{}-0{}+".format(integral, decimal_part)
             else:
-                tick_display = tick_display.partition(".")[0]
-                if float(tick_display) < 10:
-                    return "{}-0{}".format(treausry_input,tick_display)
-                else:
-                    return "{}-{}".format(treausry_input,tick_display)
+                return "{}-{}+".format(integral, decimal_part)
 
-
-    except ValueError:
-        pass
-
-    try:
-        if "-" in user_input:
-            treausry_input = int(user_input.partition("-")[0])
-            tick_display = user_input.partition("-")[2]
-            if "+" in user_input:
-                tick_display = float(tick_display.replace("+","")) + 0.5
-                tick_display = tick_display/32
-                converted_value = treausry_input + tick_display
-                return round(converted_value,6)
-            else:
-                tick_display = float(tick_display)/32
-                converted_value = treausry_input + tick_display
-                return round(converted_value,6)
         else:
-            pass
+            decimal_part = decimal_part.partition(".")[0]
+            if float(decimal_part) < 10:
+                return "{}-0{}".format(integral, decimal_part)
+            else:
+                return "{}-{}".format(integral, decimal_part)
+
+
+def Treasury_to_decimal(price):
+    """Converts a 32nds value to a float value"""
+    if "-" in price:
+        integral = int(price.partition("-")[0])
+        decimal_part = price.partition("-")[2]
+        if "+" in price:
+            decimal_part = float(decimal_part.replace("+", "")) + 0.5
+            decimal_part = decimal_part/32
+            converted_value = integral + decimal_part
+            return round(converted_value, 6)
+        else:
+            decimal_part = float(decimal_part)/32
+            converted_value = integral + decimal_part
+            return round(converted_value, 6)
+
+
+def Convertprice(user_input):
+    """Converts the price based on the user_input"""
+
+    try:
+        return Decimal_to_treasury(user_input)
     except ValueError:
         pass
-    except TypeError:
-        pass
+
+    try:
+        return Treasury_to_decimal(user_input)
+    except ValueError:
+        return "Value Error.\nExamples 108.50 or 108-16"

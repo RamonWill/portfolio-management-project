@@ -6,6 +6,5 @@ av_key = "UHJKNP33E9D8KCRS"
 news_key = "3fd4076c2a15490ca9a979cd52429448"
 
 
-
 """Accounts"""
 oanda_account = "101-004-12150308-001"

@@ -2,23 +2,21 @@ import requests
 import pandas as pd
 from oandapyV20 import API
 import oandapyV20.endpoints.orders as orders
-import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
+# import matplotlib.pyplot as plt
 
 try:
     import config
 except ImportError:
     import APIs.config as config
-#https://www.investopedia.com/articles/active-trading/101014/basics-algorithmic-trading-concepts-and-examples.asp
+# https://www.investopedia.com/articles/active-trading/101014/basics-algorithmic-trading-concepts-and-examples.asp
 
-#The gui page will feature a intraday chart that refreshes every 2 minutes. It will show the buy/sell orders fil as well as live P&L
-
-#strategy golden cross will trade based on 15period moving average and 5 period moving average
-#rsi strategy. below 30? go long, above 70? go short
+# Golden Cross strategy - based on 15 and 5 period moving average
+# RSI strategy - price below 30? Go long. Above 70? Go short.
 
 api_key_oanda = config.oanda_key
 accountID_oanda = config.oanda_account
-url_oanda = 	"https://api-fxpractice.oanda.com"
+url_oanda = "https://api-fxpractice.oanda.com"
 
 client_oanda = API(access_token=api_key_oanda)
 
@@ -32,7 +30,7 @@ def live_algo_chart(ccy_1, ccy_2, strategy):
     Parameters:
     ccy1 (str): The first currency.
     ccy2 (str): The second currency.
-    stratedy (str): The strategy determines the indicators that will be added
+    strategy (str): The strategy determines the indicators that will be added
                     to the charts.
                     Golden Cross - SMA and EMA
                     RSI - RSI
@@ -42,14 +40,11 @@ def live_algo_chart(ccy_1, ccy_2, strategy):
     """
 
     currency_pair = ccy_1 + ccy_2
-    ti_list = {"RSI", "Golden Cross"}
     dfunction = "chart"
-    strategy_indicator = {"Golden Cross":"SMA", "RSI":"RSI"}
+    strategy_indicator = {"Golden Cross": "SMA", "RSI": "RSI"}
     indicator = strategy_indicator.get(strategy)
 
-
     fx_dataframe_ascending = Algo_fx_data(ccy_1, ccy_2, dfunction)
-
 
     if strategy == "Golden Cross":
         sma_short_term = Algo_technical_indicators(indicator, currency_pair, dfunction)
@@ -66,41 +61,38 @@ def live_algo_chart(ccy_1, ccy_2, strategy):
         pass
 
 
-
 def Algo_fx_data(ccy_1, ccy_2, dfunction):
     """Requestsprice data and returns a dataframe.
 
     Parameters:
     ccy1 (str): The first currency.
     ccy2 (str): The second currency.
-    dfunction (str): Determines whether the dataframe is used to create a chart
-                     or show prices
+    dfunction (str): Determines whether the dataframe is used to
+                     create a chart(chart) or show prices(algo)
 
     Returns:
     dataframe: a dataframe that can be merged with another dataframe.
     """
-    currency_pair = ccy_1 + ccy_2
 
     function = "FX_INTRADAY"
     interval = "1min"
     time_series = "Time Series FX (1min)"
 
-
-    parameters = {"function":function, "from_symbol":ccy_1, "to_symbol":ccy_2,
-    "apikey":api_key_av, "interval":interval}
+    parameters = {"function": function, "from_symbol": ccy_1,
+                  "to_symbol": ccy_2, "apikey": api_key_av,
+                  "interval": interval}
     response = requests.get(url_av, params=parameters)
     fx_rate_json = response.json()
 
     fx_rate = fx_rate_json[time_series]
 
-
     fx_rate_extract = []
     for dates, prices in fx_rate.items():
-        fx_rate_extract.append({"Date":dates, "Close Price":float(prices["4. close"])})
+        fx_rate_extract.append({"Date": dates,
+                                "Close Price": float(prices["4. close"])})
 
-    fx_dataframe =  pd.DataFrame(fx_rate_extract)
-    fx_dataframe_ascending = fx_dataframe[::-1] #data from json is in descending order
-
+    fx_dataframe = pd.DataFrame(fx_rate_extract)
+    fx_dataframe_ascending = fx_dataframe[::-1]  # json default is descending.
 
     if dfunction == "chart":
         return fx_dataframe_ascending
@@ -127,8 +119,10 @@ def Algo_technical_indicators(indicator, currency_pair, dfunction, period=5):
 
     interval = "1min"
 
-    parameters = {"function":indicator, "symbol":currency_pair, "interval":interval,
-    "time_period":period, "series_type":"close", "apikey":api_key_av}
+    parameters = {"function": indicator,
+                  "symbol": currency_pair, "interval": interval,
+                  "time_period": period, "series_type": "close",
+                  "apikey": api_key_av}
 
     response = requests.get(url_av, params=parameters)
     ti_json = response.json()
@@ -137,19 +131,17 @@ def Algo_technical_indicators(indicator, currency_pair, dfunction, period=5):
 
     ti_extract = []
     for dates, values in ti_meta.items():
-        ti_extract.append({"Date":dates, "Value":float(values[indicator])})
+        ti_extract.append({"Date": dates, "Value": float(values[indicator])})
 
-    ti_dataframe =  pd.DataFrame(ti_extract)
+    ti_dataframe = pd.DataFrame(ti_extract)
 
-    #When i merge intraday data i need to add ":00" to every item in the date string because it wont merge with the fx_dataframe.
-    #technical indicator values use est, fx prices are utc. so i also need to convert the timezones
-
-    #find a better way to convert timezones to local.
+    # I need to add ":00" to all intaday dates to merge with the fx_dataframe.
+    # technical indicators use EST, fx prices use UTC. Hence the conversion.
 
     ti_dataframe["Date"] = [est_to_utc(date+":00") for date in ti_dataframe["Date"]]
 
-    ti_dataframe = ti_dataframe.rename(columns={"Value":"{}-day {} value".format(period, indicator)})
-    ti_dataframe_ascending = ti_dataframe[::-1] #data from json is in descending order
+    ti_dataframe = ti_dataframe.rename(columns={"Value": "{}-day {} value".format(period, indicator)})
+    ti_dataframe_ascending = ti_dataframe[::-1]  # data from json is in descending order
     if dfunction == "chart":
         return ti_dataframe_ascending
 
@@ -158,7 +150,6 @@ def Algo_technical_indicators(indicator, currency_pair, dfunction, period=5):
 
     else:
         pass
-
 
 
 def algo_execution(units, ccy1, ccy2, strategy):
@@ -171,7 +162,7 @@ def algo_execution(units, ccy1, ccy2, strategy):
 
     ccy1 (str): The first currency.
     ccy2 (str): The second currency.
-    stratedy (str): The strategy determines the indicators that will be added
+    strategy (str): The strategy determines the indicators that will be added
                     to the charts.
                     Golden Cross - SMA and EMA
                     RSI - RSI
@@ -181,7 +172,7 @@ def algo_execution(units, ccy1, ccy2, strategy):
     """
 
     units = abs(float(units))
-    strategy_indicator = {"Golden Cross":"SMA", "RSI":"RSI"}
+    strategy_indicator = {"Golden Cross": "SMA", "RSI": "RSI"}
     indicator = strategy_indicator.get(strategy)
     current_price = Algo_fx_data(ccy1, ccy2, "algo").at[0, "Close Price"]
     currency_pair = ccy1 + ccy2
@@ -201,14 +192,11 @@ def algo_execution(units, ccy1, ccy2, strategy):
             execution = algo_market_order(units, oanda_instrument)
             return "Buy Order Sent\n {}".format(algo_execution_details(execution))
 
-
         elif direction_current < 0 and direction_prior > 0:
             units = units * -1
             execution = algo_market_order(units, oanda_instrument)
             return "Sell Order Sent\n {}".format(algo_execution_details(execution))
 
-        #if sma
-        # this formula will compare the short term and long term sma. if shortterm>
         else:
             return " Current Price: {}\n 5-day SMA {}\n 15-day SMA {}".format(current_price,
             sma_short_current, sma_long_current)
@@ -241,7 +229,7 @@ def est_to_utc(time):
 
 
 def algo_market_order(units, oanda_instrument):
-# data must be organised as a JSON orderbody data (JSON (required)) – json orderbody to send
+    # data must be organised as a JSON orderbody data (JSON (required)) – json orderbody to send
     """Send a trade order to Oanda and return a JSON response of the trade
     confirmation
 
@@ -254,7 +242,7 @@ def algo_market_order(units, oanda_instrument):
     JSON: a JSON value that can be converted into a string.
     """
 
-    params_data = {"units":units, "instrument":oanda_instrument}
+    params_data = {"units": units, "instrument": oanda_instrument}
     datax = {
 "order": {
 "units": units,
