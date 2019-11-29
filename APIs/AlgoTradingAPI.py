@@ -242,7 +242,6 @@ def algo_market_order(units, oanda_instrument):
     JSON: a JSON value that can be converted into a string.
     """
 
-    params_data = {"units": units, "instrument": oanda_instrument}
     datax = {
 "order": {
 "units": units,

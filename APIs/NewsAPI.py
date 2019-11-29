@@ -27,12 +27,11 @@ def latest_news_headlines():
         source = article["source"]["name"]
         headline = "{}...".format(article["title"][0:46])
         link = article["url"]
-        formatted_articles.append({"Source": source,
-                                   "Title": headline,
+        formatted_articles.append({"Title": headline,
+                                   "Source": source,
                                    "Link": link})
 
     news_dataframe = pd.DataFrame(formatted_articles)
-    news_dataframe = news_dataframe[["Title", "Source", "Link"]]
     # pd.set_option('display.max_columns', 3)
 
     return news_dataframe

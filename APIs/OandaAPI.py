@@ -78,8 +78,6 @@ def Oanda_prices():
 
     dataframe_prices = pd.DataFrame(list_prices)
 
-    dataframe_prices = dataframe_prices[["Instrument", "Bid Price", "Ask Price"]]
-
     return dataframe_prices
 
 
@@ -201,8 +199,6 @@ def Open_positions(detail):
             pass
 
     positions_dataframe = pd.DataFrame(list_positions)
-
-    positions_dataframe = positions_dataframe[["Instrument", "Units", "Average Price", "Unrealised P&L", "P&L"]]
 
     if detail == "basic":
         orders_dataframe = positions_dataframe[["Instrument", "Units"]]
