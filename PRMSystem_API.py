@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
+import webbrowser
 import APIs.OandaAPI as OandaAPI
 import APIs.NewsAPI as NewsAPI
 import APIs.AlgoTradingAPI as Algo
@@ -268,12 +269,12 @@ class HomePage(GUI):
         tv3_news['columns'] = column_list_news
         tv3_news["show"] = "headings"
         for column in column_list_news:
-            if column == "Source":
+            if column == "Title":
                 tv3_news.heading(column, text=column)
-                tv3_news.column(column, width=30)
+                tv3_news.column(column, width=200)
             else:
                 tv3_news.heading(column, text=column)
-                tv3_news.column(column, width=100)
+                tv3_news.column(column, width=30)
         tv3_news.grid(sticky=("N", "S", "W", "E"))
         self.treeview = tv3_news
         tv3_news.place(relheight=1, relwidth=1)
@@ -281,6 +282,13 @@ class HomePage(GUI):
         treescroll_news.configure(command=tv3_news.xview)
         tv3_news.configure(xscrollcommand=treescroll_news.set)
         treescroll_news.pack(side="bottom", fill="x")
+
+        def Open_news_link(event):
+            row_id = tv3_news.selection()
+            link = tv3_news.item(row_id, "values")[2]
+            webbrowser.open_new_tab(link)
+
+        tv3_news.bind("<Double-1>", Open_news_link)  # initiates on 2nd click
 
         def Load_data():
             account = OandaAPI.Oanda_acc_summary()
