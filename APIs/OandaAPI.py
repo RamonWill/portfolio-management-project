@@ -4,7 +4,7 @@ import oandapyV20.endpoints.accounts as accounts
 import oandapyV20.endpoints.pricing as pricing
 import oandapyV20.endpoints.orders as orders
 import oandapyV20.endpoints.positions as positions
-# import requests
+import sqlite3
 
 # documentation - https://oanda-api-v20.readthedocs.io/en/latest/
 # the import error exception is raised if i run this file from prmsystem_api
@@ -20,20 +20,6 @@ accountID = config.oanda_account
 url = "https://api-fxpractice.oanda.com"
 
 client = API(access_token=api_key)
-
-instrument_names = {'USD_ZAR': 'USD/ZAR', 'NATGAS_USD': 'Natural Gas', 'USB05Y_USD': 'US 5Y T-Note', 'GBP_HKD': 'GBP/HKD', 'US30_USD': 'US Wall St 30',
-'SUGAR_USD': 'Sugar', 'XPD_USD': 'Palladium', 'US2000_USD': 'US Russ 2000', 'EUR_GBP': 'EUR/GBP', 'XAU_HKD': 'Gold/HKD', 'GBP_SGD': 'GBP/SGD',
-'USD_SEK': 'USD/SEK', 'EUR_CAD': 'EUR/CAD', 'HK33_HKD': 'Hong Kong 33', 'USD_TRY': 'USD/TRY', 'GBP_JPY': 'GBP/JPY', 'GBP_PLN': 'GBP/PLN', 'WHEAT_USD': 'Wheat',
-'EUR_JPY': 'EUR/JPY', 'TWIX_USD': 'Taiwan Index', 'XAU_JPY': 'Gold/JPY', 'EUR_HKD': 'EUR/HKD', 'USB02Y_USD': 'US 2Y T-Note', 'XAU_AUD': 'Gold/AUD',
-'IN50_USD': 'India 50', 'USD_CNH': 'USD/CNH', 'XAU_CAD': 'Gold/CAD', 'NZD_USD': 'NZD/USD', 'XAG_AUD': 'Silver/AUD', 'XAG_HKD': 'Silver/HKD', 'EUR_HUF':
-'EUR/HUF', 'JP225_USD': 'Japan 225', 'SGD_HKD': 'SGD/HKD', 'AUD_NZD': 'AUD/NZD', 'SPX500_USD': 'US SPX 500', 'EUR_USD': 'EUR/USD', 'USD_PLN': 'USD/PLN',
-'GBP_AUD': 'GBP/AUD', 'USD_CZK': 'USD/CZK', 'EUR_TRY': 'EUR/TRY', 'USD_JPY': 'USD/JPY', 'EUR_SEK': 'EUR/SEK', 'USD_SGD': 'USD/SGD', 'EUR_SGD': 'EUR/SGD',
-'CHF_JPY': 'CHF/JPY', 'USD_DKK': 'USD/DKK', 'XAU_GBP': 'Gold/GBP', 'XAG_USD': 'Silver', 'UK10YB_GBP': 'UK 10Y Gilt', 'XAG_JPY': 'Silver/JPY', 'EUR_AUD': 'EUR/AUD',
-'USD_HKD': 'USD/HKD', 'NZD_CAD': 'NZD/CAD', 'XAG_EUR': 'Silver/EUR', 'SOYBN_USD': 'Soybeans', 'GBP_ZAR': 'GBP/ZAR', 'NZD_SGD': 'NZD/SGD', 'ZAR_JPY': 'ZAR/JPY',
-'USB10Y_USD': 'US 10Y T-Note', 'XAG_CHF': 'Silver/CHF', 'XPT_USD': 'Platinum', 'EU50_EUR': 'Europe 50', 'CAD_JPY': 'CAD/JPY', 'GBP_CAD': 'GBP/CAD', 'USD_SAR': 'USD/SAR', 'XAU_CHF': 'Gold/CHF', 'EUR_PLN': 'EUR/PLN', 'BCO_USD': 'Brent Crude Oil', 'NZD_HKD': 'NZD/HKD', 'NZD_CHF': 'NZD/CHF', 'XAG_GBP': 'Silver/GBP', 'UK100_GBP': 'UK 100', 'AUD_JPY': 'AUD/JPY', 'USD_CAD': 'USD/CAD', 'XCU_USD': 'Copper', 'DE30_EUR': 'Germany 30', 'NAS100_USD': 'US Nas 100', 'EUR_ZAR': 'EUR/ZAR', 'XAU_EUR': 'Gold/EUR', 'CAD_SGD': 'CAD/SGD', 'USD_NOK': 'USD/NOK', 'HKD_JPY': 'HKD/JPY', 'NZD_JPY': 'NZD/JPY', 'XAG_NZD': 'Silver/NZD', 'FR40_EUR': 'France 40', 'USD_HUF': 'USD/HUF',
-'EUR_CZK': 'EUR/CZK', 'CHF_ZAR': 'CHF/ZAR', 'AUD_HKD': 'AUD/HKD', 'GBP_NZD': 'GBP/NZD', 'CN50_USD': 'China A50', 'XAG_SGD': 'Silver/SGD', 'XAU_SGD': 'Gold/SGD',
-'USD_INR': 'USD/INR', 'CAD_HKD': 'CAD/HKD', 'SGD_CHF': 'SGD/CHF', 'CAD_CHF': 'CAD/CHF', 'AUD_SGD': 'AUD/SGD', 'EUR_NOK': 'EUR/NOK', 'SG30_SGD': 'Singapore 30',
-'AU200_AUD': 'Australia 200', 'EUR_CHF': 'EUR/CHF', 'USB30Y_USD': 'US T-Bond', 'XAG_CAD': 'Silver/CAD', 'GBP_USD': 'GBP/USD', 'USD_MXN': 'USD/MXN', 'USD_CHF': 'USD/CHF', 'XAU_USD': 'Gold', 'AUD_CHF': 'AUD/CHF', 'EUR_DKK': 'EUR/DKK', 'CORN_USD': 'Corn', 'AUD_USD': 'AUD/USD', 'NL25_EUR': 'Netherlands 25', 'WTICO_USD': 'West Texas Oil', 'DE10YB_EUR': 'Bund', 'CHF_HKD': 'CHF/HKD', 'USD_THB': 'USD/THB', 'GBP_CHF': 'GBP/CHF', 'TRY_JPY': 'TRY/JPY', 'XAU_XAG': 'Gold/Silver', 'XAU_NZD': 'Gold/NZD', 'AUD_CAD': 'AUD/CAD', 'SGD_JPY': 'SGD/JPY', 'EUR_NZD': 'EUR/NZD'}
 
 
 def Oanda_acc_summary():
@@ -51,11 +37,70 @@ def Oanda_acc_summary():
     return dataframe_account
 
 
+def get_instruments():
+    """Gets a list of all tradable instruments on the Oanda platform."""
+    account_instruments = accounts.AccountInstruments(accountID)
+    client.request(account_instruments)
+    account_instruments = account_instruments.response
+
+    all_instruments = account_instruments["instruments"]
+
+    names = [instrument["name"] for instrument in all_instruments]
+    display_names = [instrument["displayName"] for instrument in all_instruments]
+    if len(names) == len(display_names):
+        instrument_pairs = {name: display_name for name, display_name in zip(names, display_names)}
+    try:
+        return instrument_pairs
+    except NameError:
+        print("Error. Do all instrument names have display names?")
+
+
+def load_instruments():
+    """
+    stores instruments from the Oanda platform to the source database if they
+    do not already exist in the database.
+    """
+    all_instruments = get_instruments()
+
+    conn = sqlite3.connect(r"C:\Users\Owner\Documents\PRMS_API\source.db")
+    c = conn.cursor()
+    c.execute("CREATE TABLE IF NOT EXISTS Instruments (name TEXT, displayName TEXT)")
+    db_names = [names[0] for names in c.execute("Select name from Instruments")]
+    for names, display_names in all_instruments.items():
+        if names in db_names:
+            pass
+        else:
+            print(names, display_names)
+            c.execute("INSERT INTO Instruments VALUES (:name, :displayName)", {"name": names, "displayName": display_names})
+
+    conn.commit()
+    c.close()
+    conn.close()
+
+
+def get_db_instruments():
+    """ Extracts a list of all instruments from the source database."""
+    conn = sqlite3.connect(r"C:\Users\Owner\Documents\PRMS_API\source.db")
+    conn.row_factory = sqlite3.Row
+    c = conn.cursor()
+    c.execute("select name, displayName from Instruments")
+    instrument_table = c.fetchall()
+    db_names = [row["name"] for row in instrument_table]
+    db_display_names = [row["displayName"] for row in instrument_table]
+    instrument_pairs = {name: display_name for name, display_name in zip(db_names, db_display_names)}
+
+    conn.commit()
+    c.close()
+    conn.close()
+
+    return instrument_pairs
+
+
 def Oanda_prices():
     """Request instrument prices from oanda and return a dataframe."""
-    instrument_keys = list(instrument_names)
-    instrument_keys_sorted = sorted(instrument_keys)
-    instrument_keys_sorted = ",".join(instrument_keys_sorted)
+    instrument_names = get_db_instruments()
+    instrument_keys = sorted(instrument_names)
+    instrument_keys_sorted = ",".join(instrument_keys)
 
     params_prices = {"instruments": instrument_keys_sorted}
     pricing_details = pricing.PricingInfo(accountID=accountID, params=params_prices)
@@ -100,20 +145,23 @@ def Market_order(units, instrument, password):
     if password != "trade":
         return "wrong password"
     else:
-
+        instrument_names = get_db_instruments()
         for keys, values in instrument_names.items():
             if instrument == values:
                 oanda_instrument = keys
+            else:
+                print("{} is not a tradeable instrument".format(instrument))
+                return "{}".format(instrument)
 
         datax = {
-  "order": {
-    "units": units,
-    "instrument": oanda_instrument,
-    "timeInForce": "FOK",
-    "type": "MARKET",
-    "positionFill": "DEFAULT"
-  }
-}
+          "order": {
+            "units": units,
+            "instrument": oanda_instrument,
+            "timeInForce": "FOK",
+            "type": "MARKET",
+            "positionFill": "DEFAULT"
+          }
+        }
         order = orders.OrderCreate(accountID=accountID, data=datax)
         client.request(order)
 
@@ -132,25 +180,45 @@ def Execution_details(order_details):
     """
 
     fil = order_details
+    if isinstance(fil, str):
+        return "{} is not a tradeable instrument".format(fil)
+    try:
+        fil_type = fil["orderFillTransaction"]["type"]
+        fil_execution_time = fil["orderFillTransaction"]["time"].replace("T", " ")
+        fil_transid = fil["orderFillTransaction"]["requestID"]
+        fil_account = fil["orderFillTransaction"]["accountID"]
+        fil_id = fil["orderFillTransaction"]["orderID"]
 
-    fil_type = fil["orderFillTransaction"]["type"]
-    fil_execution_time = fil["orderFillTransaction"]["time"].replace("T", " ")
-    fil_transid = fil["orderFillTransaction"]["requestID"]
-    fil_account = fil["orderFillTransaction"]["accountID"]
-    fil_id = fil["orderFillTransaction"]["orderID"]
+        fil_instrument = fil["orderFillTransaction"]["instrument"]
+        fil_units = fil["orderFillTransaction"]["units"]
+        fil_price = fil["orderFillTransaction"]["price"]
+        fil_profit = fil["orderFillTransaction"]["pl"]
+        details = (fil_type, fil_execution_time, fil_transid, fil_account,
+                   fil_id, fil_instrument, fil_units, fil_price, fil_profit)
 
-    fil_instrument = fil["orderFillTransaction"]["instrument"]
-    fil_units = fil["orderFillTransaction"]["units"]
-    fil_price = fil["orderFillTransaction"]["price"]
-    fil_profit = fil["orderFillTransaction"]["pl"]
+        fil_information = (" {}\n Execution Time: {}\n Request ID: {}\n "
+        "Account ID: {}\n Order ID: {}\n\n Instrument: {}\n Units: {}\n "
+        "Price: {}\n Gain/Loss: {}").format(*details)
 
-    fil_information = " {}\n Execution Time: {}\n Request ID: {}\n Account ID: {}\n Order ID: {}\n\n Instrument: {}\n Units: {}\n Price: {}\n Gain/Loss: {}".format(fil_type, fil_execution_time,
-    fil_transid, fil_account, fil_id, fil_instrument, fil_units, fil_price, fil_profit)
+    except KeyError:
+        fil_type = fil["orderCancelTransaction"]["type"]
+        fil_reason = fil["orderCancelTransaction"]["reason"]
+        fil_account = fil["orderCancelTransaction"]["accountID"]
+        fil_id = fil["orderCancelTransaction"]["orderID"]
 
+        fil_execution_time = fil["orderCancelTransaction"]["time"].replace("T", " ")
+        fil_instrument = fil["orderCreateTransaction"]["instrument"]
+        fil_units = fil["orderCreateTransaction"]["units"]
+        details = (fil_type, fil_reason, fil_account, fil_id,
+                   fil_execution_time, fil_instrument, fil_units)
+
+        fil_information = (" {}\n Order Cancel Reason: {}\n "
+        "Account ID: {}\n Order ID: {}\n\n Cancellation Time: {}\n "
+        "Instrument: {}\n Units: {}\n").format(*details)
     return fil_information
 
 
-def Open_positions(detail):
+def Open_positions(detail="basic"):
     """Request the open positions on the oanda account
 
     Parameters:
@@ -165,6 +233,7 @@ def Open_positions(detail):
     position_info = current_positions.response
     position_details = position_info["positions"]
     list_positions = []
+    instrument_names = get_db_instruments()
 
     for header in position_details:
         instrument = header["instrument"]
@@ -199,11 +268,13 @@ def Open_positions(detail):
             pass
 
     positions_dataframe = pd.DataFrame(list_positions)
-
-    if detail == "basic":
-        orders_dataframe = positions_dataframe[["Instrument", "Units"]]
-        return orders_dataframe
-    elif detail == "advanced":
-        return positions_dataframe
-    else:
-        pass
+    try:
+        if detail == "basic":
+            orders_dataframe = positions_dataframe[["Instrument", "Units"]]
+            return orders_dataframe
+        elif detail == "advanced":
+            return positions_dataframe
+        else:
+            pass
+    except KeyError:
+        print("There is a KeyError. Are the positions empty?")
