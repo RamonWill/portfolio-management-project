@@ -9,13 +9,13 @@ except ImportError:
 api_key = config.news_key
 
 
-def latest_news_headlines():
+def latest_news():
     """Request bloomberg articles from News API and return a dataframe"""
 
     url = "https://newsapi.org/v2/top-headlines?"
-
+    source = "bloomberg"
     params = {"apiKey": api_key,
-              "sources": "bloomberg",
+              "sources": source,
               "pagesize": 10}
 
     response = requests.get(url, params=params)
@@ -32,6 +32,5 @@ def latest_news_headlines():
                                    "Link": link})
 
     news_dataframe = pd.DataFrame(formatted_articles)
-    # pd.set_option('display.max_columns', 3)
 
     return news_dataframe
