@@ -2,10 +2,10 @@ import tkinter as tk
 from tkinter import ttk
 import webbrowser
 import APIs.OandaAPI as OandaAPI
-import APIs.NewsAPI as NewsAPI
-import APIs.AlgoTradingAPI as Algo
-import APIs.VantageAlphaAPI as AVantageAPI
-import APIs.Calculations as Calculations
+from APIs.NewsAPI import latest_news
+from APIs.AlgoTradingAPI import Algo
+from APIs.VantageAlphaAPI import AV_FXData
+from APIs.Calculations import Convertprice
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 import matplotlib.pyplot as plt
 import sqlite3
@@ -68,7 +68,7 @@ class LoginPage(tk.Tk):
             SignupPage()
 
         def getlogin():
-            conn = sqlite3.connect("users.db")
+            conn = sqlite3.connect("source.db")
             c = conn.cursor()
             global current_user
             user = entry_username.get()
@@ -128,7 +128,7 @@ class SignupPage(tk.Tk):
             password = entry_password.get()
             passcode = entry_code.get()
             if passcode == "2019" and len(password) > 4:
-                conn = sqlite3.connect("users.db")
+                conn = sqlite3.connect("source.db")
                 c = conn.cursor()
                 c.execute("CREATE TABLE IF NOT EXISTS LoginInfo (Username TEXT, Password TEXT)")
                 c.execute("SELECT Username FROM LoginInfo WHERE Username=?", (user,))
@@ -142,6 +142,8 @@ class SignupPage(tk.Tk):
                     SignupPage.destroy(self)
                 else:
                     tk.messagebox.showerror("Information", "The Username you have entered already exists.")
+                    c.close()
+                    conn.close()
             else:
                 tk.messagebox.showerror("Information", "The Passcode you have entered is incorrect or\nyour password needs to be longer than 4 values.")
 
@@ -170,9 +172,11 @@ class MenuBar(tk.Menu):
         self.add_cascade(label="Operations", menu=menu_operations)
         menu_operations.add_command(label="View Positions", command=lambda: parent.show_frame(CurrentPositions))
 
+
         menu_calculations = tk.Menu(self, tearoff=0, bg="#BFBFBF", activebackground="#96858F")
         self.add_cascade(label="Tools/Calculators", menu=menu_calculations)
         menu_calculations.add_command(label="32nds/Decimal Converter", command=lambda: parent.Get_treasurypage())
+        menu_calculations.add_command(label="Refresh database instruments...", command = lambda: parent.update_instrument_db())
 
         menu_help = tk.Menu(self, tearoff=0, bg="#BFBFBF", activebackground="#96858F")
         self.add_cascade(label="Help", menu=menu_help)
@@ -206,6 +210,9 @@ class MyApp(tk.Tk):
 
     def Get_treasurypage(self):
         UsTreasuryConv()
+
+    def update_instrument_db(self):
+        OandaAPI.load_instruments()
 
     def Quit_application(self):
         self.destroy()
@@ -301,7 +308,7 @@ class HomePage(GUI):
                 row_data = list(prices.iloc[index])
                 tv2_prices.insert("", "end", values=row_data)
 
-            news = NewsAPI.latest_news_headlines()
+            news = latest_news()
             for index in range((news.shape[0])):
                 row_data = list(news.iloc[index])
                 tv3_news.insert("", "end", values=row_data)
@@ -370,10 +377,13 @@ class CreateOrders(GUI):
         button_position.place(relx=0.02, rely=0.35)
 
         def Load_basic_position():
-            account = OandaAPI.Open_positions("basic")
-            for index in range((account.shape[0])):
-                row_data = list(account.iloc[index])
-                tv1.insert("", "end", values=row_data)
+            try:
+                account = OandaAPI.Open_positions("basic")
+                for index in range((account.shape[0])):
+                    row_data = list(account.iloc[index])
+                    tv1.insert("", "end", values=row_data)
+            except AttributeError:
+                pass
 
         def Generateorder():
             units = entry_units.get()
@@ -465,11 +475,13 @@ class SecurityPrices(GUI):
         self.toolbar = None
 
         def Generate_chart(self):
-
-            if self.canvas1 is not None:
-                self.canvas1.destroy()
-            if self.toolbar is not None:
-                self.toolbar.destroy()
+            try:
+                if self.canvas1 is not None:
+                    self.canvas1.destroy()
+                if self.toolbar is not None:
+                    self.toolbar.destroy()
+            except AttributeError:
+                print("The Canvas is empty")
 
             param_period = period.get()
             param_indicator = indicator.get()
@@ -479,32 +491,35 @@ class SecurityPrices(GUI):
             figure = plt.Figure(figsize=(4, 5), facecolor="#96858F", dpi=100)
             axis = figure.add_subplot(111)
 
-            df = AVantageAPI.Fx_chart_gui(param_period, param_ccy1, param_ccy2, param_indicator)
-            df2 = df.tail(4)
-            rsi_check = bool(param_indicator == "RSI")
-            ti_list = {"RSI", "SMA", "EMA"}
+            x = AV_FXData(param_period, param_ccy1, param_ccy2, param_indicator)
+            try:
+                df = x.Fx_chart_gui()
+                df2 = df.tail(4)
+                rsi_check = bool(param_indicator == "RSI")
+                ti_list = {"RSI", "SMA", "EMA"}
 
-            df.plot(kind="line", x="Date", y="Close Price", ax=axis)
+                df.plot(kind="line", x="Date", y="Close Price", ax=axis)
 
-            if param_indicator in ti_list:
-                df.plot(kind="line", x="Date", y="{} value".format(param_indicator),
-                ax=axis, secondary_y=rsi_check)
+                if param_indicator in ti_list:
+                    df.plot(kind="line", x="Date", y="5-period {} value".format(param_indicator),
+                    ax=axis, secondary_y=rsi_check)
 
-            else:
-                pass
+                else:
+                    pass
 
-            canvas = FigureCanvasTkAgg(figure, canvas_chart)
-            self.canvas1 = canvas.get_tk_widget()
-            self.canvas1.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
-            self.toolbar = NavigationToolbar2Tk(canvas, canvas_chart_toolbar)
+                canvas = FigureCanvasTkAgg(figure, canvas_chart)
+                self.canvas1 = canvas.get_tk_widget()
+                self.canvas1.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+                self.toolbar = NavigationToolbar2Tk(canvas, canvas_chart_toolbar)
 
-            canvas._tkcanvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-            tv1.delete(*tv1.get_children())
-            df2 = df2[["Date", "Close Price"]]
-            for index in range((df2.shape[0])):
-                row_data = list(df2.iloc[index])
-                tv1.insert("", "end", values=row_data)
-
+                canvas._tkcanvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+                tv1.delete(*tv1.get_children())
+                df2 = df2[["Date", "Close Price"]]
+                for index in range((df2.shape[0])):
+                    row_data = list(df2.iloc[index])
+                    tv1.insert("", "end", values=row_data)
+            except KeyError:
+                print("API Call Delay - Please try again in 1 minute.")
 
 class AlgoTrading(GUI):
     def __init__(self, parent, controller):
@@ -583,7 +598,7 @@ class AlgoTrading(GUI):
             ccy1 = entry_ccy1.get()
             ccy2 = entry_ccy2.get()
             algo_strategy = strategy.get()
-            label_fil["text"] = Algo.algo_execution(units, ccy1, ccy2, algo_strategy)
+            label_fil["text"] = Algo(ccy1, ccy2).algo_execution(units, algo_strategy)
 
         self.canvas_chart = None
 
@@ -599,16 +614,16 @@ class AlgoTrading(GUI):
             figure = plt.Figure(figsize=(4, 5), facecolor="#96858F", dpi=100)
             axis = figure.add_subplot(111)
             figure.autofmt_xdate()
-            df = Algo.live_algo_chart(ccy1, ccy2, param_strategy)
+            df = Algo(ccy1, ccy2).live_algo_chart(param_strategy)
 
             if param_strategy == "Golden Cross":
                 df.plot(kind="line", x="Date", y="Close Price", ax=axis)
-                df.plot(kind="line", x="Date", y="5-day SMA value", ax=axis)
-                df.plot(kind="line", x="Date", y="15-day SMA value", ax=axis)
+                df.plot(kind="line", x="Date", y="5-period SMA value", ax=axis)
+                df.plot(kind="line", x="Date", y="15-period SMA value", ax=axis)
 
             else:
                 df.plot(kind="line", x="Date", y="Close Price", ax=axis)
-                df.plot(kind="line", x="Date", y="5-day RSI value", ax=axis, secondary_y=True)
+                df.plot(kind="line", x="Date", y="5-period RSI value", ax=axis, secondary_y=True)
 
             canvas = FigureCanvasTkAgg(figure, canvas_chart)
             self.canvas_chart = canvas.get_tk_widget()
@@ -679,7 +694,7 @@ class UsTreasuryConv(tk.Tk):
 
         def input_price():
             user_input = entry1.get()
-            label2["text"] = Calculations.Convertprice(user_input)
+            label2["text"] = Convertprice(user_input)
 
         label2 = tk.Label(main_frame)
         label2.place(rely=0.6, relx=0.27, height=75, width=175)
