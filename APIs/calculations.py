@@ -1,5 +1,5 @@
 def Decimal_to_treasury(price):
-    """Converts a float value to 32nds value"""
+    """Converts a float price to 32nds price."""
     if float(price) > 0:
         integral = int(price.partition(".")[0])
         price = float(price)
@@ -20,7 +20,7 @@ def Decimal_to_treasury(price):
 
 
 def Treasury_to_decimal(price):
-    """Converts a 32nds value to a float value"""
+    """Converts a 32nds price to a decimal price."""
     if "-" in price:
         integral = int(price.partition("-")[0])
         decimal_part = price.partition("-")[2]
