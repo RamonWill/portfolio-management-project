@@ -40,13 +40,13 @@ class AV_FXData(object):
         self.date_range = self.date_range.upper()
 
         if self.indicator == "No Indicator":
-            fx_dataframe_ascending = self.Alpha_fx_data()
-            return fx_dataframe_ascending
+            fx_dataframe = self.Alpha_fx_data()
+            return fx_dataframe
 
         elif self.indicator.upper() in ti_list:
-            fx_dataframe_ascending = self.Alpha_fx_data()
-            ti_dataframe_ascending = self.Technical_indicators()
-            merged_dataframes = fx_dataframe_ascending.merge(ti_dataframe_ascending, on="Date")
+            fx_dataframe = self.Alpha_fx_data()
+            ti_dataframe = self.Technical_indicators()
+            merged_dataframes = fx_dataframe.merge(ti_dataframe, on="Date")
             return merged_dataframes
 
         else:
@@ -90,8 +90,13 @@ class AV_FXData(object):
 
         fx_rate = fx_rate_json[time_series]
 
-        fx_rate_extract = pd.DataFrame.from_dict(fx_rate, orient="index", columns = ["4. close"]).reset_index()
-        fx_rate_extract = fx_rate_extract.rename(columns={"index": "Date", "4. close": "Close Price"})
+        fx_rate_extract = pd.DataFrame.from_dict(fx_rate,
+                                                 orient="index",
+                                                 columns=["4. close"]).reset_index()
+
+        fx_rate_extract = fx_rate_extract.rename(columns={"index": "Date",
+                                                          "4. close": "Close Price"})
+
         fx_rate_extract["Close Price"] = pd.to_numeric(fx_rate_extract["Close Price"])
 
         return fx_rate_extract
@@ -120,14 +125,16 @@ class AV_FXData(object):
 
         ti_meta = ti_json["Technical Analysis: {}".format(self.indicator)]
 
-        ti_dataframe = pd.DataFrame.from_dict(ti_meta, orient="index").reset_index()
+        ti_dataframe = pd.DataFrame.from_dict(ti_meta,
+                                              orient="index").reset_index()
 
         ti_dataframe[self.indicator] = pd.to_numeric(ti_dataframe[self.indicator])
         ti_dataframe = ti_dataframe.rename(columns={self.indicator: "5-period {} value".format(self.indicator),
                                                     "index": "Date"})
         #  ":00" is added to all intraday dates to merge with the fx_dataframe
         if interval == "5min":
-            ti_dataframe["Date"] = [est_to_utc(date+":00") for date in ti_dataframe["Date"]]
+            ti_dataframe["Date"] = [est_to_utc(date+":00")
+                                    for date in ti_dataframe["Date"]]
 
         return ti_dataframe
 
@@ -136,5 +143,5 @@ def est_to_utc(time):
     """Converts the EST time for intraday data into UTC time"""
 
     est_time = datetime.strptime(time, "%Y-%m-%d %H:%M:%S")
-    utc = est_time + timedelta(hours=4)
+    utc = est_time + timedelta(hours=5)
     return str(utc)
