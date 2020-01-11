@@ -43,8 +43,8 @@ class Algo(object):
         """Requests technical indicator and price data and returns a dataframe.
 
         Parameters:
-        strategy (str): The strategy determines the indicators that will be added
-                        to the charts.
+        strategy (str): The strategy determines the indicators that will be
+                        added to the charts.
                         Golden Cross - SMA
                         RSI - RSI
 
@@ -59,17 +59,17 @@ class Algo(object):
         fx_data = self.Algo_fx_data(dfunction)
 
         if strategy == "Golden Cross":
-            sma_short_term = self.Algo_technical_indicators(indicator, dfunction)
-            sma_long_term = self.Algo_technical_indicators(indicator, dfunction, 15)
-            merged_dataframes = fx_data.merge(sma_short_term, on="Date").merge(sma_long_term, on="Date")
-            merged_dataframes = merged_dataframes.rename(columns={"SMA_x": "5-period SMA value", "SMA_y": "15-period SMA value"})
-            return merged_dataframes
+            sma_short_term = self.Algo_ti(indicator, dfunction)
+            sma_long_term = self.Algo_ti(indicator, dfunction, 15)
+            df_merged = fx_data.merge(sma_short_term, on="Date").merge(sma_long_term, on="Date")
+            df_merged = df_merged.rename(columns={"SMA_x": "5-period SMA value", "SMA_y": "15-period SMA value"})
+            return df_merged
 
         elif strategy == "RSI":
-            rsi_short_term = self.Algo_technical_indicators(indicator, dfunction)
-            merged_dataframes = fx_data.merge(rsi_short_term, on="Date")
-            merged_dataframes = merged_dataframes.rename(columns={"RSI": "5-period RSI value"})
-            return merged_dataframes
+            rsi_short_term = self.Algo_ti(indicator, dfunction)
+            df_merged = fx_data.merge(rsi_short_term, on="Date")
+            df_merged = df_merged.rename(columns={"RSI": "5-period RSI value"})
+            return df_merged
 
         else:
             pass
@@ -110,13 +110,13 @@ class Algo(object):
         else:
             pass
 
-    def Algo_technical_indicators(self, indicator, dfunction="chart", period=5):
+    def Algo_ti(self, indicator, dfunction="chart", period=5):
         """Requests technical indicator data and returns a dataframe.
 
         Parameters:
         indicator: Either SMA or RSI
-        dfunction (str): Determines whether the dataframe is used to create a chart
-                         or show prices
+        dfunction (str): Determines whether the dataframe is used to create a
+                         chart or show prices
         period (int): Default value is 5. The number of periods the Technical
                       indicator is calculated with.
         Returns:
@@ -175,10 +175,9 @@ class Algo(object):
         indicator = strategy_indicator.get(strategy)
         oanda_instrument = "{}/{}".format(self.ccy_1, self.ccy_2)
 
-
         if indicator == "SMA":
-            df_sma_short = self.Algo_technical_indicators(indicator, "algo").reset_index(drop=True)
-            df_sma_long = self.Algo_technical_indicators(indicator, "algo", 15).reset_index(drop=True)
+            df_sma_short = self.Algo_ti(indicator, "algo").reset_index(drop=True)
+            df_sma_long = self.Algo_ti(indicator, "algo", 15).reset_index(drop=True)
 
             sma_long_prior = df_sma_long.at[2, "{}".format(indicator)]
             sma_short_prior = df_sma_short.at[2, "{}".format(indicator)]
@@ -204,7 +203,7 @@ class Algo(object):
                 sma_short_current, sma_long_current)
 
         elif indicator == "RSI":
-            rsi_short_term = self.Algo_technical_indicators(indicator, "algo").reset_index(drop=True)
+            rsi_short_term = self.Algo_ti(indicator, "algo").reset_index(drop=True)
             rsi_short_term = rsi_short_term.at[0, "{}".format(indicator)]
 
             if rsi_short_term <= 30:
