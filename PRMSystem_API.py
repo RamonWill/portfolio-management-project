@@ -6,7 +6,8 @@ from APIs.NewsAPI import latest_news
 from APIs.AlgoTradingAPI import Algo
 from APIs.VantageAlphaAPI import AV_FXData
 from APIs.Calculations import Convertprice
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
+from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg,
+                                               NavigationToolbar2Tk)
 import matplotlib.pyplot as plt
 import sqlite3
 
@@ -20,9 +21,6 @@ global current_user
 counter = 0
 current_user = None
 
-screen_height = 600
-screen_width = 1024
-
 
 class LoginPage(tk.Tk):
 
@@ -30,26 +28,26 @@ class LoginPage(tk.Tk):
 
         tk.Tk.__init__(self, *args, **kwargs)
 
-        main_frame = tk.Frame(self, bg="#6D7993", height=431, width=626)
+        main_frame = tk.Frame(self, bg="#708090", height=431, width=626)
         main_frame.pack(fill="both", expand="true")
 
         self.geometry("626x431")  # Sets window size to 626w x 431h pixels
         self.resizable(0, 0)  # This prevents any resizing of the screen
 
-        self.background_image = tk.PhotoImage(file=r"home_login_background.png")
+        self.background_image = tk.PhotoImage(file=r"login_background.png")
         background_label = tk.Label(main_frame, image=self.background_image)
         background_label.place(relwidth=1, relheight=1)
 
-        secondary_frame = tk.Frame(main_frame, bg="#6D7993", relief="groove", bd=4)
+        secondary_frame = tk.Frame(main_frame, bg="#708090", relief="groove", bd=4)
         secondary_frame.place(rely=0.25, relx=0.15, height=170, width=400)
 
-        label_title = tk.Label(secondary_frame, text="PRMSystem Login Page", font=("Trebuchet MS Bold", 16), bg="#6D7993", fg="#483F44", justify="left")
+        label_title = tk.Label(secondary_frame, text="PRMSystem Login Page", font=("Trebuchet MS Bold", 16), bg="#708090", fg="#483F44", justify="left")
         label_title.grid(row=0, column=1, columnspan=1)
 
-        label_username = tk.Label(secondary_frame, text="Username:", font=("Lucida Sans", 14, "bold"), bg="#6D7993", fg="#483F44")
+        label_username = tk.Label(secondary_frame, text="Username:", font=("Lucida Sans", 14, "bold"), bg="#708090", fg="#483F44")
         label_username.grid(row=1, column=0)
 
-        label_password = tk.Label(secondary_frame, text="Password:", font=("Lucida Sans", 14, "bold"), bg="#6D7993", fg="#483F44")
+        label_password = tk.Label(secondary_frame, text="Password:", font=("Lucida Sans", 14, "bold"), bg="#708090", fg="#483F44")
         label_password.grid(row=2, column=0)
 
         entry_username = tk.Entry(secondary_frame, width=45, relief="ridge", bd=2, bg="#fbfbfb")
@@ -73,16 +71,19 @@ class LoginPage(tk.Tk):
             global current_user
             user = entry_username.get()
             password = entry_password.get()
-            c.execute("SELECT Username, Password FROM LoginInfo WHERE Username=? AND Password=?", (user, password,))
+            c.execute("""SELECT Username, Password
+                         FROM LoginInfo
+                         WHERE Username=? AND Password=?""", (user, password,))
             login_check = c.fetchone()
 
             if login_check:
-                tk.messagebox.showinfo("Login Successful", "Welcome {}".format(user))
+                tk.messagebox.showinfo("Login Successful",
+                                       "Welcome {}".format(user))
                 current_user = user
                 root.deiconify()
                 top.destroy()
             else:
-                tk.messagebox.showerror("Information", "The Username or Password you have entered are incorrect")
+                tk.messagebox.showerror("Information", "The Username or Password you have entered are incorrect ")
 
 
 class SignupPage(tk.Tk):
@@ -91,7 +92,7 @@ class SignupPage(tk.Tk):
 
         tk.Tk.__init__(self, *args, **kwargs)
 
-        main_frame = tk.Frame(self, bg="#6D7993", height=150, width=250)
+        main_frame = tk.Frame(self, bg="#708090", height=150, width=250)
         # pack_propagate prevents the window resizing to match the widgets
         main_frame.pack_propagate(0)
         main_frame.pack(fill="both", expand="true")
@@ -99,13 +100,13 @@ class SignupPage(tk.Tk):
         self.geometry("250x150")
         self.resizable(0, 0)
 
-        background_label = tk.Label(main_frame, bg="#6D7993")
+        background_label = tk.Label(main_frame, bg="#708090")
         background_label.place(relwidth=1, relheight=1)
 
-        label_username = tk.Label(background_label, text="New Username:", font=("Lucida Sans", 10, "bold"), bg="#6D7993", fg="#483F44")
+        label_username = tk.Label(background_label, text="New Username:", font=("Lucida Sans", 10, "bold"), bg="#708090", fg="#483F44")
         label_username.grid(row=1, column=0)
 
-        label_password = tk.Label(background_label, text="New Password:", font=("Lucida Sans", 10, "bold"), bg="#6D7993", fg="#483F44")
+        label_password = tk.Label(background_label, text="New Password:", font=("Lucida Sans", 10, "bold"), bg="#708090", fg="#483F44")
         label_password.grid(row=2, column=0)
 
         entry_username = tk.Entry(background_label, width=20, relief="ridge", bd=2, bg="#fbfbfb")
@@ -114,7 +115,7 @@ class SignupPage(tk.Tk):
         entry_password = tk.Entry(background_label, width=20, relief="ridge", bd=2, show="*", bg="#fbfbfb")
         entry_password.grid(row=2, column=1)
 
-        label_code = tk.Label(background_label, text="Passcode:", font=("Lucida Sans", 10, "bold"), bg="#6D7993", fg="#483F44")
+        label_code = tk.Label(background_label, text="Passcode:", font=("Lucida Sans", 10, "bold"), bg="#708090", fg="#483F44")
         label_code.grid(row=3, column=0)
 
         entry_code = tk.Entry(background_label, width=6, relief="ridge", bd=2, show="*", bg="#fbfbfb")
@@ -130,8 +131,12 @@ class SignupPage(tk.Tk):
             if passcode == "2019" and len(password) > 4:
                 conn = sqlite3.connect("source.db")
                 c = conn.cursor()
-                c.execute("CREATE TABLE IF NOT EXISTS LoginInfo (Username TEXT, Password TEXT)")
-                c.execute("SELECT Username FROM LoginInfo WHERE Username=?", (user,))
+                c.execute("""CREATE TABLE IF NOT EXISTS LoginInfo
+                             (Username TEXT, Password TEXT)""")
+
+                c.execute("""SELECT Username
+                             FROM LoginInfo
+                             WHERE Username=?""", (user,))
                 username_check = c.fetchone()
                 if username_check is None:
                     c.execute("INSERT INTO LoginInfo VALUES (:Username, :Password)", {"Username": user, "Password": password})
@@ -172,11 +177,10 @@ class MenuBar(tk.Menu):
         self.add_cascade(label="Operations", menu=menu_operations)
         menu_operations.add_command(label="View Positions", command=lambda: parent.show_frame(CurrentPositions))
 
-
         menu_calculations = tk.Menu(self, tearoff=0, bg="#BFBFBF", activebackground="#96858F")
         self.add_cascade(label="Tools/Calculators", menu=menu_calculations)
         menu_calculations.add_command(label="32nds/Decimal Converter", command=lambda: parent.Get_treasurypage())
-        menu_calculations.add_command(label="Refresh database instruments...", command = lambda: parent.update_instrument_db())
+        menu_calculations.add_command(label="Refresh database instruments...", command=lambda: parent.update_instrument_db())
 
         menu_help = tk.Menu(self, tearoff=0, bg="#BFBFBF", activebackground="#96858F")
         self.add_cascade(label="Help", menu=menu_help)
@@ -188,7 +192,7 @@ class MyApp(tk.Tk):
     def __init__(self, *args, **kwargs):
 
         tk.Tk.__init__(self, *args, **kwargs)
-        main_frame = tk.Frame(self, bg="#84CEEB", height=screen_height, width=screen_width)
+        main_frame = tk.Frame(self, bg="#84CEEB", height=600, width=1024)
         main_frame.pack_propagate(0)
         main_frame.pack(fill="both", expand="true")
         main_frame.grid_rowconfigure(0, weight=1)
@@ -221,7 +225,7 @@ class MyApp(tk.Tk):
 class GUI(tk.Frame):
     def __init__(self, parent):
         tk.Frame.__init__(self, parent)
-        main_frame = tk.Frame(self, bg="#6D7993", height=screen_height, width=screen_width)
+        main_frame = tk.Frame(self, bg="#708090", height=600, width=1024)
         main_frame.pack_propagate(0)
         main_frame.pack(fill="both", expand="true")
         main_frame.grid_rowconfigure(0, weight=1)
@@ -242,7 +246,7 @@ class HomePage(GUI):
         frame_news.place(rely=0.10, relx=0.57, height=480, width=400)
 
         button_position_rec = tk.Button(self, text="Refresh data", bg="#aaaaaa", fg="#483F44", relief="groove",
-         font=("Arial", 8, "bold"), command=lambda: Refresh_data())
+                                        font=("Arial", 8, "bold"), command=lambda: Refresh_data())
         button_position_rec.place(rely=0.055, relx=0.02)
 
         tv1_account = ttk.Treeview(frame_account)
@@ -314,7 +318,7 @@ class HomePage(GUI):
                 tv3_news.insert("", "end", values=row_data)
 
         def Refresh_data():
-            tv1_account.delete(*tv1_account.get_children())  # * is a splat operator
+            tv1_account.delete(*tv1_account.get_children())  # *=splat operator
             tv2_prices.delete(*tv2_prices.get_children())
             tv3_news.delete(*tv3_news.get_children())
             Load_data()
@@ -369,11 +373,11 @@ class CreateOrders(GUI):
         entry_password.place(relx=0.5, rely=0.5)
 
         button = tk.Button(frame_order, text="Execute Trade", bg="#aaaaaa", fg="#483F44", font=("Arial", 10, "bold"), relief="groove",
-        command=lambda: Generateorder())
+                           command=lambda: Generateorder())
         button.place(relx=0.57, rely=0.7)
 
         button_position = tk.Button(secondary_frame, text="Refresh Positions", bg="#aaaaaa", fg="#483F44", font=("Arial", 8, "bold"), relief="groove",
-        command=lambda: Refresh_basic_position())
+                                    command=lambda: Refresh_basic_position())
         button_position.place(relx=0.02, rely=0.35)
 
         def Load_basic_position():
@@ -488,7 +492,7 @@ class SecurityPrices(GUI):
             param_ccy1 = ccy_1.get()
             param_ccy2 = ccy_2.get()
 
-            figure = plt.Figure(figsize=(4, 5), facecolor="#96858F", dpi=100)
+            figure = plt.Figure(figsize=(4, 5), facecolor="#e3e4de", dpi=100)
             axis = figure.add_subplot(111)
 
             x = AV_FXData(param_period, param_ccy1, param_ccy2, param_indicator)
@@ -501,8 +505,9 @@ class SecurityPrices(GUI):
                 df.plot(kind="line", x="Date", y="Close Price", ax=axis)
 
                 if param_indicator in ti_list:
-                    df.plot(kind="line", x="Date", y="5-period {} value".format(param_indicator),
-                    ax=axis, secondary_y=rsi_check)
+                    df.plot(kind="line", x="Date",
+                            y="5-period {} value".format(param_indicator),
+                            ax=axis, secondary_y=rsi_check)
 
                 else:
                     pass
@@ -520,6 +525,7 @@ class SecurityPrices(GUI):
                     tv1.insert("", "end", values=row_data)
             except KeyError:
                 print("API Call Delay - Please try again in 1 minute.")
+
 
 class AlgoTrading(GUI):
     def __init__(self, parent, controller):
@@ -611,7 +617,7 @@ class AlgoTrading(GUI):
             ccy2 = entry_ccy2.get()
             param_strategy = strategy.get()
 
-            figure = plt.Figure(figsize=(4, 5), facecolor="#96858F", dpi=100)
+            figure = plt.Figure(figsize=(4, 5), facecolor="#e3e4de", dpi=100)
             axis = figure.add_subplot(111)
             figure.autofmt_xdate()
             df = Algo(ccy1, ccy2).live_algo_chart(param_strategy)
@@ -650,7 +656,7 @@ class CurrentPositions(GUI):
         tv1.place(relheight=1, relwidth=1)
 
         button_position = tk.Button(self, text="Refresh Positions", bg="#aaaaaa", fg="#483F44", font=("Arial", 8, "bold"), relief="groove",
-         command=lambda: Refresh_advanced_position())
+                                    command=lambda: Refresh_advanced_position())
         button_position.place(rely=0.9, relx=0.84)
 
         def Load_advanced_position():
@@ -671,7 +677,7 @@ class UsTreasuryConv(tk.Tk):
     def __init__(self, *args, **kwargs):
 
         tk.Tk.__init__(self, *args, **kwargs)
-        main_frame = tk.Frame(self, bg="#6D7993", height=325, width=400, bd=5)
+        main_frame = tk.Frame(self, bg="#708090", height=325, width=400, bd=5)
         main_frame.pack_propagate(0)
         main_frame.pack(fill="both", expand="true")
         main_frame.grid_rowconfigure(0, weight=1)
@@ -680,10 +686,10 @@ class UsTreasuryConv(tk.Tk):
         self.geometry("400x325")
         self.resizable(0, 0)
 
-        label = tk.Label(main_frame, text="32nds/Decimal Converter", font=("Trebuchet MS", 16), bg="#6D7993")
+        label = tk.Label(main_frame, text="32nds/Decimal Converter", font=("Trebuchet MS", 16), bg="#708090")
         label.pack(pady=10, padx=10)
 
-        label1 = tk.Label(main_frame, text="Enter a US Treasury Price in either 32nds or Decimal:", justify="left", font=("Lucida Sans", 8), bg="#6D7993")
+        label1 = tk.Label(main_frame, text="Enter a US Treasury Price in either 32nds or Decimal:", justify="left", font=("Lucida Sans", 8), bg="#708090")
         label1.place(rely=0.25, relx=0.02, height=30, width=300)
 
         entry1 = tk.Entry(main_frame, width=7, relief="sunken", bd=3)
