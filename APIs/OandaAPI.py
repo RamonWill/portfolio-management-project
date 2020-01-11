@@ -27,14 +27,14 @@ def Oanda_acc_summary():
     account_details = accounts.AccountDetails(accountID)
     client.request(account_details)
 
-    account_details = account_details.response
+    account_data = account_details.response
 
-    dataframe_account = pd.DataFrame(account_details).loc[["NAV", "balance", "currency"]]
-    dataframe_account = dataframe_account.drop(["lastTransactionID"], axis=1)
+    df_account = pd.DataFrame(account_data).loc[["NAV", "balance", "currency"]]
+    df_account = df_account.drop(["lastTransactionID"], axis=1)
 
-    dataframe_account.reset_index(inplace=True)
+    df_account.reset_index(inplace=True)
 
-    return dataframe_account
+    return df_account
 
 
 def get_instruments():
@@ -47,8 +47,10 @@ def get_instruments():
 
     names = [instrument["name"] for instrument in all_instruments]
     display_names = [instrument["displayName"] for instrument in all_instruments]
+
     if len(names) == len(display_names):
-        instrument_pairs = {name: display_name for name, display_name in zip(names, display_names)}
+        instrument_pairs = {name: display_name for name, display_name
+                            in zip(names, display_names)}
     try:
         return instrument_pairs
     except NameError:
@@ -57,21 +59,25 @@ def get_instruments():
 
 def load_instruments():
     """
-    stores instruments from the Oanda platform to the source database if they
+    Stores instruments from the Oanda platform to the source database if they
     do not already exist in the database.
     """
     all_instruments = get_instruments()
 
     conn = sqlite3.connect(r"C:\Users\Owner\Documents\PRMS_API\source.db")
     c = conn.cursor()
-    c.execute("CREATE TABLE IF NOT EXISTS Instruments (name TEXT, displayName TEXT)")
-    db_names = [names[0] for names in c.execute("Select name from Instruments")]
+    c.execute("""CREATE TABLE IF NOT EXISTS Instruments
+                 (name TEXT, displayName TEXT)""")
+
+    db_names = [name[0] for name in c.execute("SELECT name FROM Instruments")]
     for names, display_names in all_instruments.items():
         if names in db_names:
             pass
         else:
             print(names, display_names)
-            c.execute("INSERT INTO Instruments VALUES (:name, :displayName)", {"name": names, "displayName": display_names})
+            c.execute("""INSERT INTO Instruments
+                         VALUES (:name, :displayName)""",
+                      {"name": names, "displayName": display_names})
 
     conn.commit()
     c.close()
@@ -83,11 +89,15 @@ def get_db_instruments():
     conn = sqlite3.connect(r"C:\Users\Owner\Documents\PRMS_API\source.db")
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
-    c.execute("select name, displayName from Instruments")
+    c.execute("""SELECT name, displayName
+                 FROM Instruments
+                 ORDER BY displayName""")
+
     instrument_table = c.fetchall()
     db_names = [row["name"] for row in instrument_table]
     db_display_names = [row["displayName"] for row in instrument_table]
-    instrument_pairs = {name: display_name for name, display_name in zip(db_names, db_display_names)}
+    instrument_pairs = {name: display_name for name, display_name in
+                        zip(db_names, db_display_names)}
 
     conn.commit()
     c.close()
@@ -99,11 +109,12 @@ def get_db_instruments():
 def Oanda_prices():
     """Request instrument prices from oanda and return a dataframe."""
     instrument_names = get_db_instruments()
-    instrument_keys = sorted(instrument_names)
+    instrument_keys = list(instrument_names.keys())
     instrument_keys_sorted = ",".join(instrument_keys)
 
     params_prices = {"instruments": instrument_keys_sorted}
-    pricing_details = pricing.PricingInfo(accountID=accountID, params=params_prices)
+    pricing_details = pricing.PricingInfo(accountID=accountID,
+                                          params=params_prices)
     client.request(pricing_details)
 
     pricing_details = pricing_details.response
@@ -143,15 +154,17 @@ def Market_order(units, instrument, password):
     """
 
     if password != "trade":
-        return "wrong password"
+        return "Wrong password"
     else:
         instrument_names = get_db_instruments()
+        oanda_instrument = None
+
         for keys, values in instrument_names.items():
             if instrument == values:
                 oanda_instrument = keys
-            else:
-                print("{} is not a tradeable instrument".format(instrument))
-                return "{}".format(instrument)
+        if oanda_instrument is None:
+            print("{} is not a tradeable instrument".format(instrument))
+            return "{}".format(instrument)
 
         datax = {
           "order": {
@@ -184,7 +197,7 @@ def Execution_details(order_details):
         return "{} is not a tradeable instrument".format(fil)
     try:
         fil_type = fil["orderFillTransaction"]["type"]
-        fil_execution_time = fil["orderFillTransaction"]["time"].replace("T", " ")
+        fil_time = fil["orderFillTransaction"]["time"].replace("T", " ")
         fil_transid = fil["orderFillTransaction"]["requestID"]
         fil_account = fil["orderFillTransaction"]["accountID"]
         fil_id = fil["orderFillTransaction"]["orderID"]
@@ -193,7 +206,7 @@ def Execution_details(order_details):
         fil_units = fil["orderFillTransaction"]["units"]
         fil_price = fil["orderFillTransaction"]["price"]
         fil_profit = fil["orderFillTransaction"]["pl"]
-        details = (fil_type, fil_execution_time, fil_transid, fil_account,
+        details = (fil_type, fil_time, fil_transid, fil_account,
                    fil_id, fil_instrument, fil_units, fil_price, fil_profit)
 
         fil_information = (" {}\n Execution Time: {}\n Request ID: {}\n "
@@ -206,11 +219,11 @@ def Execution_details(order_details):
         fil_account = fil["orderCancelTransaction"]["accountID"]
         fil_id = fil["orderCancelTransaction"]["orderID"]
 
-        fil_execution_time = fil["orderCancelTransaction"]["time"].replace("T", " ")
+        fil_time = fil["orderCancelTransaction"]["time"].replace("T", " ")
         fil_instrument = fil["orderCreateTransaction"]["instrument"]
         fil_units = fil["orderCreateTransaction"]["units"]
         details = (fil_type, fil_reason, fil_account, fil_id,
-                   fil_execution_time, fil_instrument, fil_units)
+                   fil_time, fil_instrument, fil_units)
 
         fil_information = (" {}\n Order Cancel Reason: {}\n "
         "Account ID: {}\n Order ID: {}\n\n Cancellation Time: {}\n "
