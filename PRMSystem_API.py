@@ -492,9 +492,10 @@ class SecurityPrices(GUI):
             param_ccy1 = ccy_1.get()
             param_ccy2 = ccy_2.get()
 
-            figure = plt.Figure(figsize=(4, 5), facecolor="#e3e4de", dpi=100)
+            figure = plt.Figure(figsize=(4, 5), facecolor="#e3e4de", dpi=80)
             axis = figure.add_subplot(111)
 
+            axis.tick_params(axis="x", labelsize=8)
             x = AV_FXData(param_period, param_ccy1, param_ccy2, param_indicator)
             try:
                 df = x.Fx_chart_gui()
@@ -617,9 +618,11 @@ class AlgoTrading(GUI):
             ccy2 = entry_ccy2.get()
             param_strategy = strategy.get()
 
-            figure = plt.Figure(figsize=(4, 5), facecolor="#e3e4de", dpi=100)
+            figure = plt.Figure(figsize=(4, 5), facecolor="#e3e4de", dpi=80)
             axis = figure.add_subplot(111)
-            figure.autofmt_xdate()
+
+            axis.tick_params(axis="x", labelsize=9)
+
             df = Algo(ccy1, ccy2).live_algo_chart(param_strategy)
 
             if param_strategy == "Golden Cross":
