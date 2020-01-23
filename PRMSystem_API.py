@@ -256,12 +256,16 @@ class HomePage(GUI):
         frame_news = tk.LabelFrame(self, frame_styles, text="Latest News Headlines")
         frame_news.place(rely=0.05, relx=0.45, height=280, width=550)
 
-        button_position_rec = tk.Button(self, text="Refresh data", bg="#aaaaaa", fg="#483F44", relief="groove",
-                                        font=("Arial", 8, "bold"), command=lambda: Refresh_data())
-        button_position_rec.place(rely=0.055, relx=0.02)
+        refresh_button = ttk.Button(self, text="Refresh data", command=lambda: Refresh_data())
+        refresh_button.place(rely=0.9, relx=0.9)
+
+        frame_chart = tk.LabelFrame(self, frame_styles, text="Positions at a Glance")
+        frame_chart.place(rely=0.55, relx=0.45, height=222, width=222)
+        pie_chart = tk.Canvas(frame_chart, bg="#D5D5D5", relief="solid", bd=1)
+        pie_chart.pack()
 
         tv1_account = ttk.Treeview(frame_account)
-        column_list_account = ["", "Account Details"]
+        column_list_account = ["", "Information"]
         tv1_account['columns'] = column_list_account
         tv1_account["show"] = "headings"  # removes empty column
         for column in column_list_account:
@@ -283,18 +287,17 @@ class HomePage(GUI):
         treescroll_prices.pack(side="right", fill="y")
 
         tv3_news = ttk.Treeview(frame_news)
-        column_list_news = ["Title", "Source", "Link"]
+        column_list_news = ["Top Headlines", "Source", "Link"]
         tv3_news['columns'] = column_list_news
         tv3_news["show"] = "headings"
         for column in column_list_news:
-            if column == "Title" or column == "Link":
+            if column == "Top Headlines" or column == "Link":
                 tv3_news.heading(column, text=column)
                 tv3_news.column(column, width=200)
             else:
                 tv3_news.heading(column, text=column)
                 tv3_news.column(column, width=40)
         tv3_news.place(relheight=1, relwidth=0.995)
-
 
         def Open_news_link(event):
             row_id = tv3_news.selection()
@@ -305,19 +308,19 @@ class HomePage(GUI):
 
         def Load_data():
             account = OandaAPI.Oanda_acc_summary()
-            for index in range((account.shape[0])):
-                row_data = list(account.iloc[index])
-                tv1_account.insert("", "end", values=row_data)
+            account_rows = account.to_numpy().tolist()
+            for row in account_rows:
+                tv1_account.insert("", "end", values=row)
 
             prices = OandaAPI.Oanda_prices()
-            for index in range((prices.shape[0])):
-                row_data = list(prices.iloc[index])
-                tv2_prices.insert("", "end", values=row_data)
+            price_rows = prices.to_numpy().tolist()
+            for row in price_rows:
+                tv2_prices.insert("", "end", values=row)
 
             news = latest_news()
-            for index in range((news.shape[0])):
-                row_data = list(news.iloc[index])
-                tv3_news.insert("", "end", values=row_data)
+            news_rows = news.to_numpy().tolist()
+            for row in news_rows:
+                tv3_news.insert("", "end", values=row)
 
         def Refresh_data():
             tv1_account.delete(*tv1_account.get_children())  # *=splat operator
@@ -325,7 +328,7 @@ class HomePage(GUI):
             tv3_news.delete(*tv3_news.get_children())
             Load_data()
 
-        # Load_data()
+        Load_data()
 
 
 class CreateOrders(GUI):
