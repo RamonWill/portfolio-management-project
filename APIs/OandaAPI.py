@@ -137,7 +137,7 @@ def Oanda_prices():
     return dataframe_prices
 
 
-def Market_order(units, instrument, password):
+def Market_order(units, instrument):
     # data must be organised as a JSON orderbody data (JSON (required)) to send
     """Send a trade order to Oanda and return a JSON response of the trade
     confirmation
@@ -153,33 +153,30 @@ def Market_order(units, instrument, password):
     JSON: a JSON value that can be converted into a string.
     """
 
-    if password != "trade":
-        return "Wrong password"
-    else:
-        instrument_names = get_db_instruments()
-        oanda_instrument = None
+    instrument_names = get_db_instruments()
+    oanda_instrument = None
 
-        for keys, values in instrument_names.items():
-            if instrument == values:
-                oanda_instrument = keys
-        if oanda_instrument is None:
-            print("{} is not a tradeable instrument".format(instrument))
-            return "{}".format(instrument)
+    for keys, values in instrument_names.items():
+        if instrument == values:
+            oanda_instrument = keys
+    if oanda_instrument is None:
+        print("{} is not a tradeable instrument".format(instrument))
+        return "{}".format(instrument)
 
-        datax = {
-          "order": {
-            "units": units,
-            "instrument": oanda_instrument,
-            "timeInForce": "FOK",
-            "type": "MARKET",
-            "positionFill": "DEFAULT"
-          }
-        }
-        order = orders.OrderCreate(accountID=accountID, data=datax)
-        client.request(order)
+    datax = {
+      "order": {
+        "units": units,
+        "instrument": oanda_instrument,
+        "timeInForce": "FOK",
+        "type": "MARKET",
+        "positionFill": "DEFAULT"
+      }
+    }
+    order = orders.OrderCreate(accountID=accountID, data=datax)
+    client.request(order)
 
-        order_details = order.response
-        return order_details
+    order_details = order.response
+    return order_details
 
 
 def Execution_details(order_details):
