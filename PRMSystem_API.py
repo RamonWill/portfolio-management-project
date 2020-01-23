@@ -38,29 +38,32 @@ class LoginPage(tk.Tk):
         background_label = tk.Label(main_frame, image=self.background_image)
         background_label.place(relwidth=1, relheight=1)
 
-        secondary_frame = tk.Frame(main_frame, bg="#708090", relief="groove", bd=4)
-        secondary_frame.place(rely=0.25, relx=0.15, height=170, width=400)
+        secondary_frame = tk.Frame(main_frame, bg="#3F6BAA", relief="groove", bd=2)
+        secondary_frame.place(rely=0.30, relx=0.17, height=130, width=400)
 
-        label_title = tk.Label(secondary_frame, text="PRMSystem Login Page", font=("Trebuchet MS Bold", 16), bg="#708090", fg="#483F44", justify="left")
+        label_title = ttk.Label(secondary_frame, text="PRMSystem Login Page", font=("Trebuchet MS Bold", 16), background="#3F6BAA", foreground="#E1FFFF", justify="left")
         label_title.grid(row=0, column=1, columnspan=1)
 
-        label_username = tk.Label(secondary_frame, text="Username:", font=("Lucida Sans", 14, "bold"), bg="#708090", fg="#483F44")
+        label_username = ttk.Label(secondary_frame, text="Username:", font=("Lucida Sans", 14, "bold"), background="#3F6BAA", foreground="#E1FFFF")
         label_username.grid(row=1, column=0)
 
-        label_password = tk.Label(secondary_frame, text="Password:", font=("Lucida Sans", 14, "bold"), bg="#708090", fg="#483F44")
+        label_password = ttk.Label(secondary_frame, text="Password:", font=("Lucida Sans", 14, "bold"), background="#3F6BAA", foreground="#E1FFFF")
         label_password.grid(row=2, column=0)
 
-        entry_username = tk.Entry(secondary_frame, width=45, relief="ridge", bd=2, bg="#fbfbfb")
+        entry_username = ttk.Entry(secondary_frame, width=45, cursor="xterm")
         entry_username.grid(row=1, column=1)
 
-        entry_password = tk.Entry(secondary_frame, width=45, relief="ridge", bd=2, show="*", bg="#fbfbfb")
+        entry_password = ttk.Entry(secondary_frame, width=45, cursor="xterm", show="*")
         entry_password.grid(row=2, column=1)
 
-        button = tk.Button(secondary_frame, text="  Login  ", relief="groove", bg="#aaaaaa", fg="#483F44", font=("Arial", 12, "bold"), command=lambda: getlogin())
-        button.grid(row=3, column=1)
+        button = ttk.Button(secondary_frame, text="Login", style="btns.TButton", command=lambda: getlogin())
+        button.place(rely=0.70, relx=0.50)
 
-        signup_button = tk.Button(secondary_frame, text="Register", relief="groove", bg="#aaaaaa", fg="#483F44", font=("Arial", 12, "bold"), command=lambda: get_signup())
-        signup_button.grid(row=4, column=1)
+        signup_button = ttk.Button(secondary_frame, style="btns.TButton", text="Register", command=lambda: get_signup())
+        signup_button.place(rely=0.70, relx=0.75)
+
+        s = ttk.Style()
+        s.configure("btns.TButton", font=("Arial", 10, "bold"), background="#74CAE3")
 
         def get_signup():
             SignupPage()
@@ -92,7 +95,7 @@ class SignupPage(tk.Tk):
 
         tk.Tk.__init__(self, *args, **kwargs)
 
-        main_frame = tk.Frame(self, bg="#708090", height=150, width=250)
+        main_frame = tk.Frame(self, bg="#3F6BAA", height=150, width=250)
         # pack_propagate prevents the window resizing to match the widgets
         main_frame.pack_propagate(0)
         main_frame.pack(fill="both", expand="true")
@@ -100,28 +103,27 @@ class SignupPage(tk.Tk):
         self.geometry("250x150")
         self.resizable(0, 0)
 
-        background_label = tk.Label(main_frame, bg="#708090")
-        background_label.place(relwidth=1, relheight=1)
+        self.title("Registration")
 
-        label_username = tk.Label(background_label, text="New Username:", font=("Lucida Sans", 10, "bold"), bg="#708090", fg="#483F44")
+        label_username = ttk.Label(main_frame, text="New Username:", font=("Lucida Sans", 10, "bold"), background="#3F6BAA", foreground="#E1FFFF")
         label_username.grid(row=1, column=0)
 
-        label_password = tk.Label(background_label, text="New Password:", font=("Lucida Sans", 10, "bold"), bg="#708090", fg="#483F44")
+        label_password = ttk.Label(main_frame, text="New Password:", font=("Lucida Sans", 10, "bold"), background="#3F6BAA", foreground="#E1FFFF")
         label_password.grid(row=2, column=0)
 
-        entry_username = tk.Entry(background_label, width=20, relief="ridge", bd=2, bg="#fbfbfb")
+        entry_username = ttk.Entry(main_frame, width=20, cursor="xterm")
         entry_username.grid(row=1, column=1)
 
-        entry_password = tk.Entry(background_label, width=20, relief="ridge", bd=2, show="*", bg="#fbfbfb")
+        entry_password = ttk.Entry(main_frame, width=20, cursor="xterm", show="*")
         entry_password.grid(row=2, column=1)
 
-        label_code = tk.Label(background_label, text="Passcode:", font=("Lucida Sans", 10, "bold"), bg="#708090", fg="#483F44")
+        label_code = ttk.Label(main_frame, text="Passcode:", font=("Lucida Sans", 10, "bold"), background="#3F6BAA", foreground="#E1FFFF")
         label_code.grid(row=3, column=0)
 
-        entry_code = tk.Entry(background_label, width=6, relief="ridge", bd=2, show="*", bg="#fbfbfb")
+        entry_code = ttk.Entry(main_frame, width=6, cursor="xterm", show="*")
         entry_code.grid(row=3, column=1)
 
-        button = tk.Button(background_label, text=" Sign Up ", relief="groove", bg="#aaaaaa", fg="#483F44", font=("Arial", 9, "bold"), command=lambda: signup())
+        button = ttk.Button(main_frame, text="Create Account", command=lambda: signup())
         button.grid(row=4, column=1)
 
         def signup():
@@ -157,32 +159,37 @@ class MenuBar(tk.Menu):
     def __init__(self, parent):
         tk.Menu.__init__(self, parent)
 
-        menu_file = tk.Menu(self, tearoff=0, bg="#BFBFBF", activebackground="#96858F")
+        menu_styles = {"tearoff": 0, "bd": 5,
+                       "activebackground": "#d9d9d9",
+                       "background": "#FFFFFF",
+                       "activeforeground": "#000000"}
+
+        menu_file = tk.Menu(self, menu_styles)
         self.add_cascade(label="File", menu=menu_file)
         menu_file.add_command(label="Homepage", command=lambda: parent.show_frame(HomePage))
         menu_file.add_separator()
         menu_file.add_command(label="Exit", command=lambda: parent.Quit_application())
 
-        menu_orders = tk.Menu(self, tearoff=0, bg="#BFBFBF", activebackground="#96858F")
+        menu_orders = tk.Menu(self, menu_styles)
         self.add_cascade(label="Market Orders", menu=menu_orders)
         menu_orders.add_command(label="Create Buy/Sell Order", command=lambda: parent.show_frame(CreateOrders))
         menu_orders.add_separator()
         menu_orders.add_command(label="FX Algo Trading", command=lambda: parent.show_frame(AlgoTrading))
 
-        menu_pricing = tk.Menu(self, tearoff=0, bg="#BFBFBF", activebackground="#96858F")
+        menu_pricing = tk.Menu(self, menu_styles)
         self.add_cascade(label="FX Pricing", menu=menu_pricing)
         menu_pricing.add_command(label="FX Prices/Charts", command=lambda: parent.show_frame(SecurityPrices))
 
-        menu_operations = tk.Menu(self, tearoff=0, bg="#BFBFBF", activebackground="#96858F")
+        menu_operations = tk.Menu(self, menu_styles)
         self.add_cascade(label="Operations", menu=menu_operations)
         menu_operations.add_command(label="View Positions", command=lambda: parent.show_frame(CurrentPositions))
 
-        menu_calculations = tk.Menu(self, tearoff=0, bg="#BFBFBF", activebackground="#96858F")
+        menu_calculations = tk.Menu(self, menu_styles)
         self.add_cascade(label="Tools/Calculators", menu=menu_calculations)
         menu_calculations.add_command(label="32nds/Decimal Converter", command=lambda: parent.Get_treasurypage())
         menu_calculations.add_command(label="Refresh database instruments...", command=lambda: parent.update_instrument_db())
 
-        menu_help = tk.Menu(self, tearoff=0, bg="#BFBFBF", activebackground="#96858F")
+        menu_help = tk.Menu(self, menu_styles)
         self.add_cascade(label="Help", menu=menu_help)
         menu_help.add_command(label="About...")
 
@@ -225,7 +232,7 @@ class MyApp(tk.Tk):
 class GUI(tk.Frame):
     def __init__(self, parent):
         tk.Frame.__init__(self, parent)
-        main_frame = tk.Frame(self, bg="#708090", height=600, width=1024)
+        main_frame = tk.Frame(self, bg="#94b4d1", height=600, width=1024)
         main_frame.pack_propagate(0)
         main_frame.pack(fill="both", expand="true")
         main_frame.grid_rowconfigure(0, weight=1)
@@ -236,14 +243,18 @@ class HomePage(GUI):
     def __init__(self, parent, controller):
         GUI.__init__(self, parent)
 
-        frame_account = tk.Frame(self, relief="ridge", bd=3)
-        frame_account.place(rely=0.10, relx=0.02, height=150, width=300)
+        frame_styles = {"relief": "groove",
+                        "bd": 3, "bg": "#94b4d1",
+                        "fg": "#073bb3", "font": ("Arial", 9, "bold")}
 
-        frame_prices = tk.Frame(self, relief="ridge", bd=3)
-        frame_prices.place(rely=0.40, relx=0.02, height=300, width=500)
+        frame_account = tk.LabelFrame(self, frame_styles, text="Account Details")
+        frame_account.place(rely=0.05, relx=0.02, height=120, width=300)
 
-        frame_news = tk.Frame(self, relief="ridge", bd=3)
-        frame_news.place(rely=0.10, relx=0.57, height=480, width=400)
+        frame_prices = tk.LabelFrame(self, frame_styles, text="Tradable Securities")
+        frame_prices.place(rely=0.30, relx=0.02, height=375, width=400)
+
+        frame_news = tk.LabelFrame(self, frame_styles, text="Latest News Headlines")
+        frame_news.place(rely=0.05, relx=0.45, height=280, width=550)
 
         button_position_rec = tk.Button(self, text="Refresh data", bg="#aaaaaa", fg="#483F44", relief="groove",
                                         font=("Arial", 8, "bold"), command=lambda: Refresh_data())
@@ -256,9 +267,7 @@ class HomePage(GUI):
         for column in column_list_account:
             tv1_account.heading(column, text=column)
             tv1_account.column(column, width=75)
-        tv1_account.grid(sticky=("N", "S", "W", "E"))
-        self.treeview = tv1_account
-        tv1_account.place(relheight=1, relwidth=1)
+        tv1_account.place(relheight=1, relwidth=0.995)
 
         tv2_prices = ttk.Treeview(frame_prices)
         column_list_prices = ["Instrument", "Bid Price", "Ask Price"]
@@ -267,10 +276,8 @@ class HomePage(GUI):
         for column in column_list_prices:
             tv2_prices.heading(column, text=column)
             tv2_prices.column(column, width=50)
-        tv2_prices.grid(sticky=("N", "S", "W", "E"))
-        self.treeview = tv2_prices
-        tv2_prices.place(relheight=1, relwidth=1)
-        treescroll_prices = ttk.Scrollbar(frame_prices)
+        tv2_prices.place(relheight=1, relwidth=0.995)
+        treescroll_prices = tk.Scrollbar(frame_prices)
         treescroll_prices.configure(command=tv2_prices.yview)
         tv2_prices.configure(yscrollcommand=treescroll_prices.set)
         treescroll_prices.pack(side="right", fill="y")
@@ -280,19 +287,14 @@ class HomePage(GUI):
         tv3_news['columns'] = column_list_news
         tv3_news["show"] = "headings"
         for column in column_list_news:
-            if column == "Title":
+            if column == "Title" or column == "Link":
                 tv3_news.heading(column, text=column)
                 tv3_news.column(column, width=200)
             else:
                 tv3_news.heading(column, text=column)
-                tv3_news.column(column, width=30)
-        tv3_news.grid(sticky=("N", "S", "W", "E"))
-        self.treeview = tv3_news
-        tv3_news.place(relheight=1, relwidth=1)
-        treescroll_news = ttk.Scrollbar(frame_news, orient="horizontal")
-        treescroll_news.configure(command=tv3_news.xview)
-        tv3_news.configure(xscrollcommand=treescroll_news.set)
-        treescroll_news.pack(side="bottom", fill="x")
+                tv3_news.column(column, width=40)
+        tv3_news.place(relheight=1, relwidth=0.995)
+
 
         def Open_news_link(event):
             row_id = tv3_news.selection()
@@ -323,7 +325,7 @@ class HomePage(GUI):
             tv3_news.delete(*tv3_news.get_children())
             Load_data()
 
-        Load_data()
+        # Load_data()
 
 
 class CreateOrders(GUI):
@@ -409,7 +411,7 @@ class CreateOrders(GUI):
             tv1.delete(*tv1.get_children())
             Load_basic_position()
 
-        Load_basic_position()
+        # Load_basic_position()
 
 
 class SecurityPrices(GUI):
@@ -688,6 +690,8 @@ class UsTreasuryConv(tk.Tk):
 
         self.geometry("400x325")
         self.resizable(0, 0)
+
+        self.title("T-Bill Conversion")
 
         label = tk.Label(main_frame, text="32nds/Decimal Converter", font=("Trebuchet MS", 16), bg="#708090")
         label.pack(pady=10, padx=10)
