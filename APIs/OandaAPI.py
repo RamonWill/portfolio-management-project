@@ -194,17 +194,17 @@ def Execution_details(order_details):
         return "{} is not a tradeable instrument".format(fil)
     try:
         fil_type = fil["orderFillTransaction"]["type"]
-        fil_time = fil["orderFillTransaction"]["time"].replace("T", " ")
-        fil_transid = fil["orderFillTransaction"]["requestID"]
-        fil_account = fil["orderFillTransaction"]["accountID"]
-        fil_id = fil["orderFillTransaction"]["orderID"]
+        time = fil["orderFillTransaction"]["time"].replace("T", " ")
+        transid = fil["orderFillTransaction"]["requestID"]
+        account = fil["orderFillTransaction"]["accountID"]
+        id = fil["orderFillTransaction"]["orderID"]
 
-        fil_instrument = fil["orderFillTransaction"]["instrument"]
-        fil_units = fil["orderFillTransaction"]["units"]
-        fil_price = fil["orderFillTransaction"]["price"]
-        fil_profit = fil["orderFillTransaction"]["pl"]
-        details = (fil_type, fil_time, fil_transid, fil_account,
-                   fil_id, fil_instrument, fil_units, fil_price, fil_profit)
+        instrument = fil["orderFillTransaction"]["instrument"]
+        units = fil["orderFillTransaction"]["units"]
+        price = fil["orderFillTransaction"]["price"]
+        profit = fil["orderFillTransaction"]["pl"]
+        details = (fil_type, time, transid, account,
+                   id, instrument, units, price, profit)
 
         fil_information = (" {}\n Execution Time: {}\n Request ID: {}\n "
         "Account ID: {}\n Order ID: {}\n\n Instrument: {}\n Units: {}\n "
@@ -212,20 +212,80 @@ def Execution_details(order_details):
 
     except KeyError:
         fil_type = fil["orderCancelTransaction"]["type"]
-        fil_reason = fil["orderCancelTransaction"]["reason"]
-        fil_account = fil["orderCancelTransaction"]["accountID"]
-        fil_id = fil["orderCancelTransaction"]["orderID"]
+        reason = fil["orderCancelTransaction"]["reason"]
+        account = fil["orderCancelTransaction"]["accountID"]
+        id = fil["orderCancelTransaction"]["orderID"]
 
-        fil_time = fil["orderCancelTransaction"]["time"].replace("T", " ")
-        fil_instrument = fil["orderCreateTransaction"]["instrument"]
-        fil_units = fil["orderCreateTransaction"]["units"]
-        details = (fil_type, fil_reason, fil_account, fil_id,
-                   fil_time, fil_instrument, fil_units)
+        time = fil["orderCancelTransaction"]["time"].replace("T", " ")
+        instrument = fil["orderCreateTransaction"]["instrument"]
+        units = fil["orderCreateTransaction"]["units"]
+        details = (fil_type, reason, account, id,
+                   time, instrument, units)
 
         fil_information = (" {}\n Order Cancel Reason: {}\n "
         "Account ID: {}\n Order ID: {}\n\n Cancellation Time: {}\n "
         "Instrument: {}\n Units: {}\n").format(*details)
     return fil_information
+
+
+def trade_to_db(order_details):
+    """Stores the trade details into a sqlite3 database.
+
+    Parameters:
+    order details (json): The JSON response from oanda.
+    """
+
+    fil = order_details
+    if isinstance(fil, str):
+        pass
+    else:
+        try:
+            id = fil["orderFillTransaction"]["orderID"]
+            instrument = fil["orderFillTransaction"]["instrument"]
+            units = fil["orderFillTransaction"]["units"]
+            price = fil["orderFillTransaction"]["price"]
+            profit = fil["orderFillTransaction"]["pl"]
+
+            instrument_names = get_db_instruments()
+            instrument = instrument_names.get(instrument)
+
+            conn = sqlite3.connect(r"C:\Users\Owner\Documents\PRMS_API\source.db")
+            c = conn.cursor()
+            c.execute("""CREATE TABLE IF NOT EXISTS All_Transactions
+                         (id TEXT, name TEXT, quantity REAL, price REAL, pnl REAL)""")
+
+            placeholders = {"id": id,
+                            "name": instrument,
+                            "quantity": units,
+                            "price": price,
+                            "pnl": profit
+                            }
+            c.execute("""INSERT INTO All_Transactions
+                         VALUES (:id, :name, :quantity, :price, :pnl)""",
+                      placeholders)
+            print("Order ID {} stored to the database".format(id))
+            conn.commit()
+            c.close()
+            conn.close()
+        except KeyError:
+            print("""The transaction was cancelled.\n
+                     Therefore nothing was saved to the database.""")
+
+
+def get_largest_positions():
+    conn = sqlite3.connect(r"C:\Users\Owner\Documents\PRMS_API\source.db")
+    c = conn.cursor()
+    c.execute("""SELECT name, SUM(quantity*price)
+                 FROM All_Transactions
+                 GROUP BY name
+                 ORDER BY SUM(quantity*price) DESC
+                 LIMIT 5""")
+    x = c.fetchall()
+    df = pd.DataFrame(x, columns=["name", "MarketVal"])
+    conn.commit()
+    c.close()
+    conn.close()
+    return df
 
 
 def Open_positions(detail="basic"):
