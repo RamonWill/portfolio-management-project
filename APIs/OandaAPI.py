@@ -278,7 +278,7 @@ def get_largest_positions():
     c.execute("""SELECT name, SUM(quantity*price)
                  FROM All_Transactions
                  GROUP BY name
-                 ORDER BY SUM(quantity*price) DESC
+                 ORDER BY ABS(SUM(quantity*price))DESC
                  LIMIT 5""")
     x = c.fetchall()
     df = pd.DataFrame(x, columns=["name", "MarketVal"])
