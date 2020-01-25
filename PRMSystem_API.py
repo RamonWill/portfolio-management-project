@@ -339,7 +339,7 @@ class HomePage(GUI):
 
             df = OandaAPI.get_largest_positions()
             names = df["name"]
-            market_vals = df["MarketVal"]
+            market_vals = abs(df["MarketVal"])
             if len(names) == 0:
                 explode = None
             elif len(names) == 1:
