@@ -47,6 +47,7 @@ class AV_FXData(object):
             fx_dataframe = self.Alpha_fx_data()
             ti_dataframe = self.Technical_indicators()
             merged_dataframes = fx_dataframe.merge(ti_dataframe, on="Date")
+
             return merged_dataframes
 
         else:
@@ -132,6 +133,7 @@ class AV_FXData(object):
         ti_dataframe = ti_dataframe.rename(columns={self.indicator: "5-period {} value".format(self.indicator),
                                                     "index": "Date"})
         #  ":00" is added to all intraday dates to merge with the fx_dataframe
+        
         if interval == "5min":
             ti_dataframe["Date"] = [est_to_utc(date+":00")
                                     for date in ti_dataframe["Date"]]
@@ -143,5 +145,5 @@ def est_to_utc(time):
     """Converts the EST time for intraday data into UTC time"""
 
     est_time = datetime.strptime(time, "%Y-%m-%d %H:%M:%S")
-    utc = est_time + timedelta(hours=5)
+    utc = est_time + timedelta(hours=4)
     return str(utc)
