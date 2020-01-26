@@ -5,9 +5,13 @@ import oandapyV20.endpoints.pricing as pricing
 import oandapyV20.endpoints.orders as orders
 import oandapyV20.endpoints.positions as positions
 import sqlite3
+from pathlib import Path
+
 
 # documentation - https://oanda-api-v20.readthedocs.io/en/latest/
 # the import error exception is raised if i run this file from prmsystem_api
+PARENT_PATH = Path(__file__).parent.parent
+DB_PATH = str(Path.joinpath(PARENT_PATH, "source.db"))
 
 try:
     import config
@@ -64,10 +68,8 @@ def load_instruments():
     """
     all_instruments = get_instruments()
 
-    conn = sqlite3.connect(r"C:\Users\Owner\Documents\PRMS_API\source.db")
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    c.execute("""CREATE TABLE IF NOT EXISTS Instruments
-                 (name TEXT, displayName TEXT)""")
 
     db_names = [name[0] for name in c.execute("SELECT name FROM Instruments")]
     for names, display_names in all_instruments.items():
@@ -86,7 +88,7 @@ def load_instruments():
 
 def get_db_instruments():
     """ Extracts a list of all instruments from the source database."""
-    conn = sqlite3.connect(r"C:\Users\Owner\Documents\PRMS_API\source.db")
+    conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
     c.execute("""SELECT name, displayName
@@ -255,7 +257,7 @@ def trade_to_db(order_details):
 
 
 def get_largest_positions():
-    conn = sqlite3.connect(r"C:\Users\Owner\Documents\PRMS_API\source.db")
+    conn = sqlite3.connect(DB_PATH)
     query = """SELECT name, SUM(quantity*price) as 'MarketVal'
                 FROM All_Transactions
                 WHERE cancelled = 0
@@ -269,13 +271,12 @@ def get_largest_positions():
 
 
 def get_all_positions():
-    conn = sqlite3.connect(r"C:\Users\Owner\Documents\PRMS_API\source.db")
+    conn = sqlite3.connect(DB_PATH)
     query = """SELECT *
                FROM All_Transactions;"""
     df = pd.read_sql_query(query, conn)
     conn.close()
     return df
-
 
 def Open_positions(detail="basic"):
     """Request the open positions on the oanda account
@@ -357,7 +358,7 @@ def validate_entry(name, quantity, price):
 
 
 def generateID():
-    conn = sqlite3.connect(r"C:\Users\Owner\Documents\PRMS_API\source.db")
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute("""SELECT MAX(TRIM(id, 'C'))
                  FROM all_transactions
@@ -377,7 +378,7 @@ def generateID():
     return new_id
 
 def cancelled_toggle(id, toggle):
-    conn = sqlite3.connect(r"C:\Users\Owner\Documents\PRMS_API\source.db")
+    conn = sqlite3.connect(DB_PATH)
 
     c = conn.cursor()
     c.execute("""UPDATE all_transactions
@@ -398,10 +399,8 @@ def add_to_db(instrument, units, price, id=None, cancelled=0, profit=0):
     if id is None:
         id = generateID()
 
-    conn = sqlite3.connect(r"C:\Users\Owner\Documents\PRMS_API\source.db")
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    c.execute("""CREATE TABLE IF NOT EXISTS All_Transactions
-                 (id TEXT, name TEXT, quantity REAL, price REAL, pnl REAL, cancelled INTEGER)""")
     placeholders = {"id": id,
                     "name": instrument,
                     "quantity": units,
