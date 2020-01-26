@@ -10,11 +10,21 @@ from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg,
                                                NavigationToolbar2Tk)
 import matplotlib.pyplot as plt
 import sqlite3
-
-
+from Setup.setup import Setup_database_tables
+import os
+# on first login it should create the databases already
 """This App project will create a python GUI interface that will perform
 various portfolio reconciliation tasks and other management data handling"""
 # PRMS = Portfolio Reconciliation and Management System
+
+### SETUP ###
+if os.path.exists("source.db"):
+    pass
+else:
+    current_dir = os.getcwd()
+    db_path = current_dir + r"\source.db"
+    print(Setup_database_tables(db_path))
+### ###
 
 global counter
 global current_user
@@ -137,9 +147,6 @@ class SignupPage(tk.Tk):
             if passcode == "2019" and len(password) > 4:
                 conn = sqlite3.connect("source.db")
                 c = conn.cursor()
-                c.execute("""CREATE TABLE IF NOT EXISTS LoginInfo
-                             (Username TEXT, Password TEXT)""")
-
                 c.execute("""SELECT Username
                              FROM LoginInfo
                              WHERE Username=?""", (user,))
