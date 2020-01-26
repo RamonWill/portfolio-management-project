@@ -246,41 +246,33 @@ def trade_to_db(order_details):
             instrument_names = get_db_instruments()
             instrument = instrument_names.get(instrument)
 
-            conn = sqlite3.connect(r"C:\Users\Owner\Documents\PRMS_API\source.db")
-            c = conn.cursor()
-            c.execute("""CREATE TABLE IF NOT EXISTS All_Transactions
-                         (id TEXT, name TEXT, quantity REAL, price REAL, pnl REAL)""")
+            return add_to_db(instrument, units, price, id, profit, cancelled=0)
 
-            placeholders = {"id": id,
-                            "name": instrument,
-                            "quantity": units,
-                            "price": price,
-                            "pnl": profit
-                            }
-            c.execute("""INSERT INTO All_Transactions
-                         VALUES (:id, :name, :quantity, :price, :pnl)""",
-                      placeholders)
-            print("Order ID {} stored to the database".format(id))
-            conn.commit()
-            c.close()
-            conn.close()
         except KeyError:
+            # I should return this instead
             print("""The transaction was cancelled.\n
                      Therefore nothing was saved to the database.""")
 
 
 def get_largest_positions():
     conn = sqlite3.connect(r"C:\Users\Owner\Documents\PRMS_API\source.db")
-    c = conn.cursor()
-    c.execute("""SELECT name, SUM(quantity*price)
-                 FROM All_Transactions
-                 GROUP BY name
-                 ORDER BY ABS(SUM(quantity*price))DESC
-                 LIMIT 5""")
-    x = c.fetchall()
-    df = pd.DataFrame(x, columns=["name", "MarketVal"])
-    conn.commit()
-    c.close()
+    query = """SELECT name, SUM(quantity*price) as 'MarketVal'
+                FROM All_Transactions
+                WHERE cancelled = 0
+                GROUP BY name
+                ORDER BY ABS(SUM(quantity*price))DESC
+                LIMIT 5"""
+
+    df = pd.read_sql_query(query, conn)
+    conn.close()
+    return df
+
+
+def get_all_positions():
+    conn = sqlite3.connect(r"C:\Users\Owner\Documents\PRMS_API\source.db")
+    query = """SELECT *
+               FROM All_Transactions;"""
+    df = pd.read_sql_query(query, conn)
     conn.close()
     return df
 
@@ -345,3 +337,82 @@ def Open_positions(detail="basic"):
             pass
     except KeyError:
         print("There is a KeyError. Are the positions empty?")
+
+def validate_entry(name, quantity, price):
+    instruments = get_db_instruments()
+    try:
+        p = next(True for key, value in instruments.items() if value == name)
+        quantity = float(quantity)
+        check_price = (float(price) >= 0)
+    except (StopIteration, ValueError) as e:
+        if (isinstance(e, StopIteration)):
+            return "The name you have entered is not a tradeable instrument."
+        elif(isinstance(e, ValueError)):
+            return "The Quantity and Price must be valid numbers."
+
+    if not check_price:
+        return "The Price cannot be a negative number"
+    else:
+        return True
+
+
+def generateID():
+    conn = sqlite3.connect(r"C:\Users\Owner\Documents\PRMS_API\source.db")
+    c = conn.cursor()
+    c.execute("""SELECT MAX(TRIM(id, 'C'))
+                 FROM all_transactions
+                 WHERE id LIKE 'C%' """)
+    last_id = c.fetchone()[0]
+
+    if last_id is None:
+        new_id = "C{:04n}".format(1)
+    else:
+        new_id = "C{:04n}".format(int(last_id)+1)
+    print(new_id)
+
+    conn.commit()
+    c.close()
+    conn.close()
+
+    return new_id
+
+def cancelled_toggle(id, toggle):
+    conn = sqlite3.connect(r"C:\Users\Owner\Documents\PRMS_API\source.db")
+
+    c = conn.cursor()
+    c.execute("""UPDATE all_transactions
+                 SET cancelled = ?
+                 WHERE id = ?""", (toggle, id))
+
+    result = c.rowcount
+    conn.commit()
+    c.close()
+    conn.close()
+    if result == 0:
+        return "Order ID does not exist in the database.".format(id)
+    else:
+        return "Changes have been made to Order ID {}.".format(id)
+
+
+def add_to_db(instrument, units, price, id=None, cancelled=0, profit=0):
+    if id is None:
+        id = generateID()
+
+    conn = sqlite3.connect(r"C:\Users\Owner\Documents\PRMS_API\source.db")
+    c = conn.cursor()
+    c.execute("""CREATE TABLE IF NOT EXISTS All_Transactions
+                 (id TEXT, name TEXT, quantity REAL, price REAL, pnl REAL, cancelled INTEGER)""")
+    placeholders = {"id": id,
+                    "name": instrument,
+                    "quantity": units,
+                    "price": price,
+                    "pnl": profit,
+                    "cancelled": 0
+                    }
+    c.execute("""INSERT INTO All_Transactions
+                 VALUES (:id, :name, :quantity, :price, :pnl, :cancelled)""",
+              placeholders)
+    conn.commit()
+    c.close()
+    conn.close()
+    return "Order ID {} stored to the database".format(id)
