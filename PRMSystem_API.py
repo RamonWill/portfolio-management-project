@@ -726,6 +726,43 @@ class CurrentPositions(GUI):
 
         Load_advanced_position()
 
+class PositionReconciliation(GUI):
+    def __init__(self, parent, controller):
+        GUI.__init__(self, parent)
+
+        frame1 = tk.LabelFrame(self, frame_styles, text="Position Reconciliation")
+        frame1.place(rely=0.10, relx=0.05, relheight=0.75, relwidth=0.9)
+#Instrument	Units	PRMS Units	Avg Price	PRMS Avg Price	Position Diff	Price Diff	Commentary
+
+        tv1 = ttk.Treeview(frame1)
+        column_list = ["Instrument", "Units", "PRMS Units",
+                       "Avg Price", "PRMS Avg Price", "Position Diff",
+                       "Price Diff", "Commentary"]
+        tv1['columns'] = column_list
+        tv1["show"] = "headings"
+
+        for column in column_list:
+            tv1.heading(column, text=column)
+            tv1.column(column, width=50)
+        tv1.place(relheight=1, relwidth=1)
+
+        button_position = ttk.Button(self, text="Run Reconciliation", command=lambda: create_rec())
+        button_position.place(rely=0.9, relx=0.84)
+
+        def create_rec():
+            rec = OandaAPI.Reconciliation()
+            rec_table = rec.generate_rec()
+            rec_table_rows = rec_table.to_numpy().tolist()
+            for row in rec_table_rows:
+                tv1.insert("", "end", values=row)
+
+        def Refresh_advanced_position():
+            tv1.delete(*tv1.get_children())
+            create_rec()
+
+
+
+
 
 class TradeBookings(GUI):
     def __init__(self, parent, controller):
