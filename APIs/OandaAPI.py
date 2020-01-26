@@ -415,3 +415,70 @@ def add_to_db(instrument, units, price, id=None, cancelled=0, profit=0):
     c.close()
     conn.close()
     return "Order ID {} stored to the database".format(id)
+
+
+class Reconciliation(object):
+    def __init__(self):
+        self.oanda_pos = None
+        self.prms_pos = None
+
+    def generate_rec(self):
+        self.populate_tables()
+
+        rec = self.oanda_pos.merge(self.prms_pos, on="Instrument", how="outer")
+        rec = rec[["Instrument", "Units",
+                   "PRMS Units", "Avg Price",
+                   "PRMS Avg Price"]]
+        rec["Position Diff"] = rec["Units"] - rec["PRMS Units"]
+        rec["Price Diff"] = rec["Avg Price"] - rec["PRMS Avg Price"]
+
+        commentary = []
+
+        for row in rec.itertuples():
+            position_diff = row[6]
+            price_diff = row[7]
+            if position_diff == 0 and price_diff == 0:
+                commentary.append("OK")
+            elif position_diff == 0 and price_diff != 0:
+                commentary.append("Price Break")
+            elif position_diff !=0 and price_diff == 0:
+                commentary.append("Position Break")
+            else:
+                commentary.append("Position and Price Break")
+
+        rec["Commentary"] = commentary
+        return rec
+
+    def num_matches(self):
+        rec = self.generate_rec()
+        total_records = len(rec)
+        matches = len(rec.query("Commentary == 'OK'"))
+
+        if total_records == matches:
+            return "There are no position breaks"
+        else:
+            return "{} out of {} positions have breaks".format(matches,
+                                                               total_records)
+
+    def populate_tables(self):
+        self.oanda_pos = self.get_oanda_positions()
+        self.prms_pos = self.get_prms_positions()
+
+    def get_oanda_positions(self):
+        pos = Open_positions("advanced")
+        pos["Average Price"] = pos["Average Price"].astype(float)
+        pos["Units"] = pos["Units"].astype(float)
+        return pos.rename(columns={"Average Price": "Avg Price"})
+
+    def get_prms_positions(self):
+        conn = sqlite3.connect(DB_PATH)
+        query = """SELECT
+                    name as "Instrument",
+                    SUM(quantity) as "PRMS Units",
+                    price as "PRMS Avg Price"
+                   FROM All_transactions
+                   WHERE cancelled = 0
+                   GROUP BY name;"""
+        df = pd.read_sql_query(query, conn)
+        conn.close()
+        return df
