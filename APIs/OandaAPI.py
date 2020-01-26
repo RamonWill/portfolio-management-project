@@ -154,12 +154,9 @@ def Market_order(units, instrument):
     """
 
     instrument_names = get_db_instruments()
-    oanda_instrument = None
-
-    for keys, values in instrument_names.items():
-        if instrument == values:
-            oanda_instrument = keys
-    if oanda_instrument is None:
+    try:
+        oanda_instrument = next(k for k, v in instrument_names.items() if v == instrument)
+    except StopIteration:
         print("{} is not a tradeable instrument".format(instrument))
         return "{}".format(instrument)
 
