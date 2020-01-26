@@ -259,6 +259,9 @@ class HomePage(GUI):
         refresh_button = ttk.Button(self, text="Refresh data", command=lambda: Refresh_data())
         refresh_button.place(rely=0.9, relx=0.9)
 
+        frame_rec = tk.LabelFrame(self, frame_styles, text="Reconciliations at a Glance")
+        frame_rec.place(rely=0.55, relx=0.80, height=222, width=190)
+
         frame_chart = tk.LabelFrame(self, frame_styles, text="Positions at a Glance")
         frame_chart.place(rely=0.55, relx=0.45, height=222, width=350)
         pie_chart = tk.Canvas(frame_chart, bg="#D5D5D5", relief="solid", bd=1)
@@ -337,38 +340,41 @@ class HomePage(GUI):
             except AttributeError:
                 print("The Pie Chart is empty")
 
-            df = OandaAPI.get_largest_positions()
-            names = df["name"]
+            try:
+                df = OandaAPI.get_largest_positions()
+                names = df["name"]
+            except TypeError:
+                print("Failed to generate pie chart. Are the positions empty?")
+                return None
+
             market_vals = abs(df["MarketVal"])
-            if len(names) == 0:
-                explode = None
-            elif len(names) == 1:
+            if len(names) == 0 or len(names) == 1:
                 explode = None
             else:
                 explode = tuple([0.1]+[0.05]*(len(names)-1))
 
             colors = ["#377E9B", "#559CB9", "#7DC4E1", "#AFF6FF", "#D7FFFF"]
-            fig = plt.Figure(figsize=(4, 4), facecolor="#f0f6f7")
+            fig = plt.Figure(figsize=(4, 4), facecolor="#d4d8d9")
             ax_pie = fig.add_subplot(111)
             ax_pie.pie(market_vals,
                        colors=colors,
                        explode=explode,
                        pctdistance=0.85,
                        startangle=90)
-            centre_circle = plt.Circle((0, 0), 0.70, fc="#f0f6f7")
+            centre_circle = plt.Circle((0, 0), 0.70, fc="#d4d8d9")
             ax_pie.add_artist(centre_circle)
             ax_pie.axis("equal")
             ax_pie.set_title("Largest Positions")
             pie_legend = ax_pie.legend(names, loc='upper left', bbox_to_anchor=(0.74, 0.35), fontsize=6)
             pie_frame = pie_legend.get_frame()
-            pie_frame.set_facecolor("#d4d8d9")
+            pie_frame.set_facecolor("#babebf")
             pie_frame.set_edgecolor("#000000")
             canvas = FigureCanvasTkAgg(fig, pie_chart)
             self.pie_canvas = canvas.get_tk_widget()
             self.pie_canvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
         Generate_pie_chart(self)
-        Load_data()
+        # Load_data()
 
 
 class CreateOrders(GUI):
