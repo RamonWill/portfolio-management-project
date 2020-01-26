@@ -186,8 +186,12 @@ class MenuBar(tk.Menu):
 
         menu_operations = tk.Menu(self, menu_styles)
         self.add_cascade(label="Operations", menu=menu_operations)
-        menu_operations.add_command(label="View Positions", command=lambda: parent.show_frame(CurrentPositions))
         menu_operations.add_command(label="Trade Bookings", command=lambda: parent.show_frame(TradeBookings))
+        menu_positions = tk.Menu(menu_operations, menu_styles)
+        menu_operations.add_cascade(label="Positions", menu=menu_positions)
+        menu_positions.add_command(label="View Positions", command=lambda: parent.show_frame(CurrentPositions))
+        menu_positions.add_command(label="Position Reconciliation", command=lambda: parent.show_frame(PositionReconciliation))
+
 
         menu_calculations = tk.Menu(self, menu_styles)
         self.add_cascade(label="Tools/Calculators", menu=menu_calculations)
@@ -214,7 +218,8 @@ class MyApp(tk.Tk):
         self.frames = {}
         pages = (HomePage, CreateOrders,
                  SecurityPrices, AlgoTrading,
-                 CurrentPositions, TradeBookings)
+                 CurrentPositions, PositionReconciliation,
+                 TradeBookings)
         for F in pages:
             frame = F(main_frame, self)
             self.frames[F] = frame
