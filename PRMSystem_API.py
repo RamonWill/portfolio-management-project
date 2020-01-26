@@ -187,6 +187,7 @@ class MenuBar(tk.Menu):
         menu_operations = tk.Menu(self, menu_styles)
         self.add_cascade(label="Operations", menu=menu_operations)
         menu_operations.add_command(label="View Positions", command=lambda: parent.show_frame(CurrentPositions))
+        menu_operations.add_command(label="Trade Bookings", command=lambda: parent.show_frame(TradeBookings))
 
         menu_calculations = tk.Menu(self, menu_styles)
         self.add_cascade(label="Tools/Calculators", menu=menu_calculations)
@@ -211,7 +212,10 @@ class MyApp(tk.Tk):
         self.resizable(0, 0)
         self.geometry("1024x600")
         self.frames = {}
-        for F in (HomePage, CreateOrders, SecurityPrices, AlgoTrading, CurrentPositions):
+        pages = (HomePage, CreateOrders,
+                 SecurityPrices, AlgoTrading,
+                 CurrentPositions, TradeBookings)
+        for F in pages:
             frame = F(main_frame, self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")
@@ -722,6 +726,84 @@ class CurrentPositions(GUI):
 
         Load_advanced_position()
 
+
+class TradeBookings(GUI):
+    def __init__(self, parent, controller):
+        GUI.__init__(self, parent)
+
+        frame1 = tk.LabelFrame(self, frame_styles, text="Manual Entry")
+        frame1.place(rely=0.05, relx=0.05, relheight=0.20, relwidth=0.9)
+
+        label_name = tk.Label(frame1, justify="left", bg="#94b4d1", font=("Lucida Sans", 9), text="Security Name")
+        label_name.pack()
+        label_quantity = tk.Label(frame1, justify="left", bg="#94b4d1", font=("Lucida Sans", 9), text="Quantity")
+        label_quantity.pack()
+        label_price = tk.Label(frame1, justify="left", bg="#94b4d1", font=("Lucida Sans", 9), text="Price")
+        label_price.pack()
+        label_cancelled = tk.Label(frame1, justify="left", bg="#94b4d1", font=("Lucida Sans", 9), text="Cancel")
+        label_cancelled.pack()
+
+        entry_name = ttk.Entry(frame1, width=7, cursor="xterm")
+        entry_name.pack(side="right")
+        entry_quantity = ttk.Entry(frame1, width=7, cursor="xterm")
+        entry_quantity.pack(side="right")
+        entry_price = ttk.Entry(frame1, width=7, cursor="xterm")
+        entry_price.pack(side="right")
+
+        btn_convert = ttk.Button(frame1, text="add to database", command=lambda: insert_db())
+        btn_convert.pack(side="right")
+
+        entry_id = ttk.Entry(frame1, width=7, cursor="xterm")
+        entry_id.pack(side="left")
+        self.check_val = tk.IntVar(parent)
+        cancel_btn = ttk.Radiobutton(frame1, text="Uncancel", variable=self.check_val, value=0)
+        cancel_btn.pack(side="left")
+        uncancel_btn = ttk.Radiobutton(frame1, text="Cancel", variable=self.check_val, value=1)
+        uncancel_btn.pack(side="left")
+        btn_convert = ttk.Button(frame1, text="cancel/uncancel", command=lambda: cancel_db())
+        btn_convert.pack(side="left")
+
+        frame1 = tk.LabelFrame(self, frame_styles, text="All Transactions")
+        frame1.place(rely=0.25, relx=0.05, relheight=0.65, relwidth=0.9)
+
+        tv1 = ttk.Treeview(frame1)
+        column_list = ["Order ID", "Name",
+                       "Quantity", "Price",
+                       "P&L", "Cancelled"]
+        tv1['columns'] = column_list
+        tv1["show"] = "headings"
+        for column in column_list:
+            tv1.heading(column, text=column)
+            tv1.column(column, width=50)
+        tv1.place(relheight=1, relwidth=1)
+        treescroll_prices = tk.Scrollbar(frame1)
+        treescroll_prices.configure(command=tv1.yview)
+        tv1.configure(yscrollcommand=treescroll_prices.set)
+        treescroll_prices.pack(side="right", fill="y")
+
+        def Load_all_transactions():
+            positions = OandaAPI.get_all_positions()
+            positions_rows = positions.to_numpy().tolist()
+            for row in positions_rows:
+                tv1.insert("", "end", values=row)
+        Load_all_transactions()
+
+        def insert_db():
+            name = entry_name.get()
+            quantity = entry_quantity.get()
+            price = entry_price.get()
+
+            check = OandaAPI.validate_entry(name, quantity, price)
+            if isinstance(check, str):  # if validation Failed
+                print(check)
+                return None
+            else:
+                print(OandaAPI.add_to_db(name, quantity, price))
+
+        def cancel_db():
+            toggle = int(self.check_val.get())
+            id = entry_id.get()
+            print(OandaAPI.cancelled_toggle(id, toggle))
 
 class UsTreasuryConv(tk.Tk):
 
