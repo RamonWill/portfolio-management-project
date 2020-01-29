@@ -278,7 +278,7 @@ class HomePage(GUI):
         frame_news.place(rely=0.05, relx=0.45, height=280, width=550)
 
         refresh_btn = ttk.Button(self, text="Refresh data", command=lambda: Refresh_data())
-        refresh_btn.place(rely=0.9, relx=0.9)
+        refresh_btn.place(rely=0.94, relx=0.9)
 
         frame_rec = tk.LabelFrame(self, frame_styles, text="Reconciliations at a Glance")
         frame_rec.place(rely=0.55, relx=0.80, height=222, width=190)
@@ -834,6 +834,9 @@ class TradeBookings(GUI):
         btn_submit1 = ttk.Button(frame1, text="Insert", command=lambda: insert_db())
         btn_submit1.place(rely=0.75, relx=0.40)
 
+        btn_refresh = ttk.Button(frame1, text="Refresh", command=lambda: refresh_db_trans())
+        btn_refresh.place(rely=0.75, relx=0.60)
+
         label_id = tk.Label(frame2, text_styles, text="Order ID")
         label_id.place(rely=0.05, relx=0.05)
         entry_id = ttk.Entry(frame2, width=7, cursor="xterm")
@@ -870,7 +873,11 @@ class TradeBookings(GUI):
             positions_rows = positions.to_numpy().tolist()
             for row in positions_rows:
                 tv1.insert("", "end", values=row)
-        Load_all_transactions()
+
+        def refresh_db_trans():
+            tv1.delete(*tv1.get_children())
+            Load_all_transactions()
+
 
         def insert_db():
             name = entry_name.get()
@@ -891,6 +898,7 @@ class TradeBookings(GUI):
             with PRMS_Database() as db:
                 print(db.cancelled_toggle(id, toggle))
 
+        Load_all_transactions()
 
 class UsTreasuryConv(tk.Tk):
 
