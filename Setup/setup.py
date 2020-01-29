@@ -1,6 +1,6 @@
 import sqlite3
 
-## Set up Database Tables
+# Set up Database Tables
 
 
 def Setup_database_tables(path):

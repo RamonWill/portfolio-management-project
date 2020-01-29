@@ -4,7 +4,7 @@ import pandas as pd
 try:
     import config
 except ImportError:
-    import APIs.config as config
+    import Core.config as config
 
 api_key = config.news_key
 

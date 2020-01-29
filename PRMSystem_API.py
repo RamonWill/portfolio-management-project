@@ -1,15 +1,15 @@
 import tkinter as tk
 from tkinter import ttk
 import webbrowser
-import APIs.OandaAPI as OandaAPI
-from APIs.NewsAPI import latest_news
-from APIs.AlgoTradingAPI import Algo
-from APIs.VantageAlphaAPI import AV_FXData
-from APIs.Calculations import Convertprice
+import Core.OandaAPI as OandaAPI
+from Core.NewsAPI import latest_news
+from Core.AlgoTradingAPI import Algo
+from Core.VantageAlphaAPI import AV_FXData
+from Core.Calculations import Convertprice
+from Core.DatabaseConnections import PRMS_Database
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg,
                                                NavigationToolbar2Tk)
 import matplotlib.pyplot as plt
-import sqlite3
 from Setup.setup import Setup_database_tables
 import os
 
@@ -85,6 +85,9 @@ class LoginPage(tk.Tk):
         signup_btn = ttk.Button(frame_login, style="btns.TButton", text="Register", command=lambda: get_signup())
         signup_btn.place(rely=0.70, relx=0.75)
 
+        label_user = tk.Label(main_frame, font=("Arial Black", 8), background="#3F6BAA", text="Created by Ramon Williams")
+        label_user.place(rely=0.9, relx=0.7)
+
         s = ttk.Style()
         s.configure("btns.TButton", font=("Arial", 10, "bold"), background="#74CAE3")
 
@@ -92,17 +95,13 @@ class LoginPage(tk.Tk):
             SignupPage()
 
         def getlogin():
-            conn = sqlite3.connect("source.db")
-            c = conn.cursor()
             global current_user
             user = entry_user.get()
             pw = entry_pw.get()
-            c.execute("""SELECT Username, Password
-                         FROM LoginInfo
-                         WHERE Username=? AND Password=?""", (user, pw,))
-            login_check = c.fetchone()
+            with PRMS_Database() as db:
+                validation = db.Validate_login(user, pw)
 
-            if login_check:
+            if validation:
                 tk.messagebox.showinfo("Login Successful",
                                        "Welcome {}".format(user))
                 current_user = user
@@ -157,24 +156,15 @@ class SignupPage(tk.Tk):
             user = entry_user.get()
             pw = entry_pw.get()
             passcode = entry_code.get()
+
             if passcode == "2019" and len(pw) > 4:
-                conn = sqlite3.connect("source.db")
-                c = conn.cursor()
-                c.execute("""SELECT Username
-                             FROM LoginInfo
-                             WHERE Username=?""", (user,))
-                username_check = c.fetchone()
-                if username_check is None:
-                    c.execute("INSERT INTO LoginInfo VALUES (:Username, :Password)", {"Username": user, "Password": pw})
-                    conn.commit()
-                    c.close()
-                    conn.close()
+                with PRMS_Database() as db:
+                    status = db.registration(user, pw)
+                if isinstance(status, str):
+                    tk.messagebox.showerror("Information", "The Username you have entered already exists.")
+                else:
                     tk.messagebox.showinfo("Information", "Your account has now been created.")
                     SignupPage.destroy(self)
-                else:
-                    tk.messagebox.showerror("Information", "The Username you have entered already exists.")
-                    c.close()
-                    conn.close()
             else:
                 tk.messagebox.showerror("Information", "The Passcode you have entered is incorrect or\nyour password needs to be longer than 4 values.")
 
@@ -219,7 +209,7 @@ class MenuBar(tk.Menu):
 
         menu_help = tk.Menu(self, menu_styles)
         self.add_cascade(label="Help", menu=menu_help)
-        menu_help.add_command(label="About...")
+        menu_help.add_command(label="About...", command=lambda: parent.AboutMe())
 
 
 class MyApp(tk.Tk):
@@ -257,6 +247,9 @@ class MyApp(tk.Tk):
     def update_instrument_db(self):
         OandaAPI.load_instruments()
 
+    def AboutMe(self):
+        AboutPage()
+
     def Quit_application(self):
         self.destroy()
 
@@ -289,6 +282,9 @@ class HomePage(GUI):
 
         frame_rec = tk.LabelFrame(self, frame_styles, text="Reconciliations at a Glance")
         frame_rec.place(rely=0.55, relx=0.80, height=222, width=190)
+
+        label_rec_info = tk.Label(frame_rec, justify="left", bg="#D5D5D5", relief="ridge", bd=2, font=("Verdana", 10))
+        label_rec_info.pack(expand=True, fill="both")
 
         frame_chart = tk.LabelFrame(self, frame_styles, text="Positions at a Glance")
         frame_chart.place(rely=0.55, relx=0.45, height=222, width=350)
@@ -332,6 +328,11 @@ class HomePage(GUI):
                 tv3_news.column(column, width=40)
         tv3_news.place(relheight=1, relwidth=0.995)
 
+        def reconciliations_view():
+            rec = OandaAPI.Reconciliation()
+            info = rec.num_matches()
+            label_rec_info["text"] = info
+
         def Open_news_link(event):
             row_id = tv3_news.selection()
             link = tv3_news.item(row_id, "values")[2]
@@ -355,6 +356,8 @@ class HomePage(GUI):
             for row in news_rows:
                 tv3_news.insert("", "end", values=row)
 
+            reconciliations_view()
+
         def Refresh_data():
             tv1_account.delete(*tv1_account.get_children())  # *=splat operator
             tv2_prices.delete(*tv2_prices.get_children())
@@ -369,8 +372,9 @@ class HomePage(GUI):
                 print("The Pie Chart is empty")
 
             try:
-                df = OandaAPI.get_largest_positions()
-                names = df["name"]
+                with PRMS_Database() as db:
+                    df = db.get_largest_positions()
+                    names = df["name"]
             except TypeError:
                 print("Failed to generate pie chart. Are the positions empty?")
                 return None
@@ -402,7 +406,7 @@ class HomePage(GUI):
             self.pie_canvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
         Generate_pie_chart(self)
-        # Load_data()
+        Load_data()
 
 
 class CreateOrders(GUI):
@@ -861,7 +865,8 @@ class TradeBookings(GUI):
         treescroll_prices.pack(side="right", fill="y")
 
         def Load_all_transactions():
-            positions = OandaAPI.get_all_positions()
+            with PRMS_Database() as db:
+                positions = db.get_all_positions()
             positions_rows = positions.to_numpy().tolist()
             for row in positions_rows:
                 tv1.insert("", "end", values=row)
@@ -872,17 +877,19 @@ class TradeBookings(GUI):
             quantity = entry_quantity.get()
             price = entry_price.get()
 
-            check = OandaAPI.validate_entry(name, quantity, price)
-            if isinstance(check, str):  # if validation Failed
-                print(check)
-                return None
-            else:
-                print(OandaAPI.add_to_db(name, quantity, price))
+            with PRMS_Database() as db:
+                check = db.validate_entry(name, quantity, price)
+                if isinstance(check, str):  # if validation Failed
+                    print(check)
+                    return None
+                else:
+                    print(db.add_to_db(name, quantity, price))
 
         def cancel_db():
             toggle = int(self.check_val.get())
             id = entry_id.get()
-            print(OandaAPI.cancelled_toggle(id, toggle))
+            with PRMS_Database() as db:
+                print(db.cancelled_toggle(id, toggle))
 
 
 class UsTreasuryConv(tk.Tk):
@@ -921,11 +928,44 @@ class UsTreasuryConv(tk.Tk):
             user_input = entry1.get()
             label2["text"] = Convertprice(user_input)
 
+class AboutPage(tk.Tk):
+
+    def __init__(self, *args, **kwargs):
+
+        tk.Tk.__init__(self, *args, **kwargs)
+
+        main_frame = tk.Frame(self)
+        main_frame.pack_propagate(0)
+        main_frame.pack(fill="both", expand="true")
+        main_frame.grid_rowconfigure(0, weight=1)
+        main_frame.grid_columnconfigure(0, weight=1)
+
+        self.geometry("500x500")
+        self.resizable(0, 0)
+
+        self.title("About")
+        bio = """PRMSystem is a portfolio management project created by\n
+        Ramon Williams. PRMSystem utilises the APIs from AlphaVantage, Oanda\n
+        and NewsAPI to create interface that allows the user to read news\n
+        articles, check FX prices/charts, execute trades and trade based\n
+        on two algorithms.
+
+        As I am learning more about software development this project has\n
+        improved my knowledge on a variety of python libraries, APIs and SQL\n
+        it has also been very helpful on increasing my understanding of\n
+        Functions and OOP."""
+        frame1 = tk.LabelFrame(main_frame, frame_styles, text="Thank you for viewing")
+        frame1.pack(expand=True, fill="both")
+
+        label = tk.Label(frame1, text=bio, font=("Trebuchet MS", 9), bg="#94b4d1")
+        label.pack(expand=True)
+
+
 
 top = LoginPage()
-top.title("PRMSystem Beta 0.9")
+top.title("PRMSystem")
 root = MyApp()
 root.withdraw()
-root.title("PRMSystem Beta 0.9")
+root.title("PRMSystem")
 
 root.mainloop()

@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 try:
     import config
 except ImportError:
-    import APIs.config as config
+    import Core.config as config
 
 api_key = config.av_key
 url = "https://www.alphavantage.co/query?"
@@ -133,7 +133,7 @@ class AV_FXData(object):
         ti_dataframe = ti_dataframe.rename(columns={self.indicator: "5-period {} value".format(self.indicator),
                                                     "index": "Date"})
         #  ":00" is added to all intraday dates to merge with the fx_dataframe
-        
+
         if interval == "5min":
             ti_dataframe["Date"] = [est_to_utc(date+":00")
                                     for date in ti_dataframe["Date"]]
