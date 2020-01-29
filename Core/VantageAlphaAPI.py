@@ -145,5 +145,5 @@ def est_to_utc(time):
     """Converts the EST time for intraday data into UTC time"""
 
     est_time = datetime.strptime(time, "%Y-%m-%d %H:%M:%S")
-    utc = est_time + timedelta(hours=4)
+    utc = est_time + timedelta(hours=5)
     return str(utc)
