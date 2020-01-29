@@ -792,15 +792,12 @@ class PositionReconciliation(GUI):
         button_position.place(rely=0.9, relx=0.84)
 
         def create_rec():
+            tv1.delete(*tv1.get_children())
             rec = OandaAPI.Reconciliation()
             rec_table = rec.generate_rec()
             rec_table_rows = rec_table.to_numpy().tolist()
             for row in rec_table_rows:
                 tv1.insert("", "end", values=row)
-
-        def Refresh_advanced_position():
-            tv1.delete(*tv1.get_children())
-            create_rec()
 
 
 class TradeBookings(GUI):
@@ -956,7 +953,9 @@ class AboutPage(tk.Tk):
         Ramon Williams. PRMSystem utilises the APIs from AlphaVantage, Oanda\n
         and NewsAPI to create interface that allows the user to read news\n
         articles, check FX prices/charts, execute trades and trade based\n
-        on two algorithms.
+        on two algorithms. This project also allows you to perform\n
+        position reconciliations and store Oanda trades into a database\n
+        where ALL entries are logged.
 
         As I am learning more about software development this project has\n
         improved my knowledge on a variety of python libraries, APIs and SQL\n
@@ -967,7 +966,6 @@ class AboutPage(tk.Tk):
 
         label = tk.Label(frame1, text=bio, font=("Trebuchet MS", 9), bg="#94b4d1")
         label.pack(expand=True)
-
 
 
 top = LoginPage()
