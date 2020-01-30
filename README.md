@@ -1,5 +1,5 @@
 # Portfolio-Management-Project
-A basic porfolio management system written in Python using the GUI application Tkinter. 
+A basic porfolio management system written in Python using the GUI application Tkinter.
 
 # Table of Contents
 - [Introduction](#Introduction)
@@ -7,9 +7,9 @@ A basic porfolio management system written in Python using the GUI application T
   * [Getting Started](#Getting-Started)
 - [Features](#Features)
   * [Sub-heading](#sub-heading)
-  
+
 # Introduction
-This Project (PRMS) utlises the REST API's of Alpha Vantage to create charts with/without technical indicators and Oanda to execute trades to the market. PRMS also uses sqlite3 to store information from the Oanda platform into a database for reconciliation purposes.
+This Project (PRMS) utilises the REST API's of Alpha Vantage to create charts with/without technical indicators and Oanda to execute trades to the market. PRMS also uses sqlite3 to store information from the Oanda platform into a database for reconciliation purposes.
 
 # Installation
 If you do not have Python 3.7+, you can download it here.
@@ -40,4 +40,3 @@ PRMS comes packed with the following features:
 * Position and Price reconciliation between Oanda and PRMS
 
 # Screenshots
-
