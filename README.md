@@ -15,7 +15,7 @@ This Project (PRMS) utilises the REST API's of Alpha Vantage to create charts wi
 # Installation
 If you do not have Python 3.7+, you can download it [here](https://www.python.org/downloads/release/python-370/, "here").
 
-In the terminal navigate to the project directory and type 'pip3 install -r requirements.txt'. This will install all the required modules to run this application.
+In the terminal navigate to the project directory and type `pip3 install -r requirements.txt`. This will install all the required modules to run this application.
 
 
 API - Keys
