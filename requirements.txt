@@ -1,0 +1,8 @@
+alpha-vantage
+matplotlib
+numpy
+oabdapyV20
+pandas
+requests
+sqlite3
+webbrowser
