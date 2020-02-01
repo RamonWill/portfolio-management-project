@@ -46,9 +46,11 @@ PRMS comes packed with the following features:
 * Position and Price reconciliation between Oanda and PRMS
 
 # Credits
-I'd like to thank [this answer](https://stackoverflow.com/questions/7546050/switch-between-two-frames-in-tkinter/7557028#7557028, "this answer") from Bryan Oakley on stack overflow that allowed me to design the layout and workflow of this project. 
+I'd like to thank [this answer](https://stackoverflow.com/questions/7546050/switch-between-two-frames-in-tkinter/7557028#7557028, "this answer") from Bryan Oakley on stack overflow that allowed me to design the layout and workflow of this project, without this it wouldn't be possible. 
 
 I would also like to thank the Youtube channels [Sentdex](https://www.youtube.com/user/sentdex, "Sentdex") and [Derrick Sherril](https://www.youtube.com/channel/UCJHs6RO1CSM85e8jIMmCySw, "Derrick Sherril") for improving my knowledge on Python Libraries and demonstrating all of the things that can be done through Python.
+
+[Here](https://gist.github.com/RamonWill/0422b061464097a7a0162f33e4c13a2e) is a gist i created. It is a rough template you can use if you want to create pages in the GUI as well as have a login page.
 
 # Video-Demo
 Coming Soon...
