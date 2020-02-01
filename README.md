@@ -1,6 +1,10 @@
 # Portfolio Management Project (PRMSystem)
 A basic porfolio management system written in Python's standard GUI package, Tkinter.
 
+<img src="screenshots/ss-homepage.png" width="500">
+
+<img src="screenshots/ss-graph.png" width="500">
+
 # Table of Contents
 - [Introduction](https://github.com/RamonWill/portfolio-management-project#Introduction)
 - [Installation](https://github.com/RamonWill/portfolio-management-project#Installation)
@@ -28,7 +32,7 @@ This project requires 3 API keys:
 *** Note with Oanda you will also need to set up a dummy trading account with them to get your key.
 Once you have your API keys and Oanda Account ID. populate them as strings in the config file.
 
-When these processes have been completde you can then run the main application.
+When these processes have been completed you can then run the main application.
 
 # Features
 PRMS comes packed with the following features:
@@ -50,8 +54,7 @@ I would also like to thank the Youtube channels [Sentdex](https://www.youtube.co
 Coming Soon...
 
 # Screenshots
-<img src="screenshots/ss-login.png" width="300">
-<img src="screenshots/ss-homepage.png" width="300">
-<img src="screenshots/ss-graph.png" width="300">
-<img src="screenshots/ss-manualentry.png" width="300">
-<img src="screenshots/ss-algotrading.png" width="300">
+<img src="screenshots/ss-login.png" width="350">
+<img src="screenshots/ss-marketorder.png" width="350">
+<img src="screenshots/ss-manualentry.png" width="350">
+<img src="screenshots/ss-algotrading.png" width="350">
