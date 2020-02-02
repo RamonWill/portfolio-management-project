@@ -23,8 +23,9 @@ if os.path.exists("source.db"):
     pass
 else:
     current_dir = os.getcwd()
-    db_path = current_dir + r"\source.db"
+    db_path = current_dir + r"\source.db"  # creates the database
     print(Setup_database_tables(db_path))
+    OandaAPI.load_instruments()  # loads the security prices to the database
 # #
 
 global counter
