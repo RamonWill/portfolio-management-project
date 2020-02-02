@@ -1,5 +1,4 @@
 import requests
-import pandas as pd
 
 try:
     import config
@@ -10,7 +9,8 @@ api_key = config.news_key
 
 
 def latest_news():
-    """Request bloomberg articles from News API and return a dataframe"""
+    """Request bloomberg articles from News API and returns a multidimensional
+       array."""
 
     url = "https://newsapi.org/v2/top-headlines?"
     source = "bloomberg"
@@ -27,10 +27,8 @@ def latest_news():
         source = article["source"]["name"]
         headline = "{}...".format(article["title"][0:46])
         link = article["url"]
-        formatted_articles.append({"Title": headline,
-                                   "Source": source,
-                                   "Link": link})
+        formatted_articles.append([headline,
+                                  source,
+                                  link])
 
-    news_dataframe = pd.DataFrame(formatted_articles)
-
-    return news_dataframe
+    return formatted_articles

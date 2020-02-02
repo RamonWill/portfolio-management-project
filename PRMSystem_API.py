@@ -347,13 +347,11 @@ class HomePage(GUI):
             for row in account_rows:
                 tv1_account.insert("", "end", values=row)
 
-            prices = OandaAPI.Oanda_prices()
-            price_rows = prices.to_numpy().tolist()
+            price_rows = OandaAPI.Oanda_prices()
             for row in price_rows:
                 tv2_prices.insert("", "end", values=row)
 
-            news = latest_news()
-            news_rows = news.to_numpy().tolist()
+            news_rows = latest_news()
             for row in news_rows:
                 tv3_news.insert("", "end", values=row)
 

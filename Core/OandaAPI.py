@@ -103,13 +103,11 @@ def Oanda_prices():
         instrument_name = instrument_names.get(instrument)
         bid_price = header["bids"][0]["price"]
         ask_price = header["asks"][0]["price"]
-        list_prices.append({"Instrument": instrument_name,
-                            "Bid Price": bid_price,
-                            "Ask Price": ask_price})
+        list_prices.append([instrument_name,
+                            bid_price,
+                            ask_price])
 
-    dataframe_prices = pd.DataFrame(list_prices)
-
-    return dataframe_prices
+    return list_prices
 
 
 def Market_order(units, instrument):
