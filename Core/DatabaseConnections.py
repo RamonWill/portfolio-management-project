@@ -3,8 +3,9 @@ import pandas as pd
 from pathlib import Path
 
 PARENT_PATH = Path(__file__).parent.parent
-# Rename APIs file core.
+
 # r"C:\Users\Owner\Documents\PRMS_API\source.db"
+
 
 class PRMS_Database(object):
     def __init__(self):
