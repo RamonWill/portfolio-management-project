@@ -14,7 +14,7 @@ A basic porfolio management system written in Python's standard GUI package, Tki
 - [Screenshots](https://github.com/RamonWill/portfolio-management-project#Screenshots)
 
 # Introduction
-This Project (PRMS) utilises the REST API's of Alpha Vantage to create charts with/without technical indicators and Oanda to execute trades to the market. PRMS also uses sqlite3 to store information from the Oanda platform into a database for reconciliation purposes.
+This Project (PRMS) utilises the REST API's of Alpha Vantage to create charts with/without technical indicators and Oanda to execute trades to the market. PRMS also uses sqlite3 to store information from the Oanda platform into a database for reconciliation purposes. My main reason for using Tkinter was because its lack of "hand holding" meant that I had to create a lot of these features from scratch, i.e. the login and register pages and as well as the trade entry feature.
 
 # Installation
 If you do not have Python 3.7+, you can download it [here](https://www.python.org/downloads/release/python-370/, "here").
@@ -53,7 +53,8 @@ I would also like to thank the Youtube channels [Sentdex](https://www.youtube.co
 [Here](https://gist.github.com/RamonWill/0422b061464097a7a0162f33e4c13a2e) is a gist i created. It is a rough template you can use if you want to create pages in the GUI as well as have a login page.
 
 # Video-Demo
-Coming Soon...
+The image below will redirect you to the video demo on Youtube
+[<img src="https://img.youtube.com/vi/4W3vLU2TqTI/maxresdefault.jpg" width="75%">](https://www.youtube.com/watch?v=4W3vLU2TqTI&feature=youtu.be)
 
 # Screenshots
 <img src="screenshots/ss-login.png" width="350">
