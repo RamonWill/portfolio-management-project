@@ -874,7 +874,6 @@ class TradeBookings(GUI):
             tv1.delete(*tv1.get_children())
             Load_all_transactions()
 
-
         def insert_db():
             name = entry_name.get()
             quantity = entry_quantity.get()
@@ -895,6 +894,7 @@ class TradeBookings(GUI):
                 print(db.cancelled_toggle(id, toggle))
 
         Load_all_transactions()
+
 
 class UsTreasuryConv(tk.Tk):
 
@@ -931,6 +931,7 @@ class UsTreasuryConv(tk.Tk):
         def input_price():
             user_input = entry1.get()
             label2["text"] = Convertprice(user_input)
+
 
 class AboutPage(tk.Tk):
 
