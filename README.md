@@ -52,6 +52,8 @@ I would also like to thank the Youtube channels [Sentdex](https://www.youtube.co
 
 [Here](https://gist.github.com/RamonWill/0422b061464097a7a0162f33e4c13a2e) is a gist i created. It is a rough template you can use if you want to create pages in the GUI as well as have a login page.
 
+* Disclaimer: This project is not valid financial tool. It is a project that I've created to help me learn more about Python. You should in no way use it to make investment decisions.
+
 # Video-Demo
 The image below will redirect you to the video demo on Youtube
 [<img src="https://img.youtube.com/vi/4W3vLU2TqTI/maxresdefault.jpg" width="75%">](https://www.youtube.com/watch?v=4W3vLU2TqTI&feature=youtu.be)
