@@ -111,16 +111,37 @@ class PRMS_Database(object):
         return "Order ID {} stored to the database".format(id)
 
     def get_prms_positions(self):
-
+        # This query can be improved. previous query average wasn't weighted.
+        # here i weight short trades vs long then average them both together,
         query = """SELECT
-                    name as "Instrument",
-                    SUM(quantity) as "PRMS Units",
-                    price as "PRMS Avg Price"
-                   FROM All_transactions
-                   WHERE cancelled = 0
-                   GROUP BY name;"""
+                    Instrument,
+                    SUM([Units]) as 'PRMS Units',
+                    AVG([Price]) as 'PRMS Avg Price'
+                FROM
+                (
+                    SELECT
+                        a.name as 'Instrument',
+                        CASE WHEN a.quantity < 0 then SUM(a.quantity) else 0 end as 'Units',
+                        CASE WHEN a.quantity < 0 then SUM(a.quantity*a.price)/SUM(a.quantity) else 0 end as 'Price'
+                        from All_Transactions a
+                    WHERE a.cancelled = 0 AND a.quantity < 0
+                    GROUP BY a.name
+                    HAVING 'Price' > 0
+
+                    UNION ALL
+
+                    SELECT
+                        b.name as 'Instrument',
+                        CASE WHEN b.quantity > 0 then SUM(b.quantity) else 0 end as 'Units',
+                        CASE WHEN b.quantity > 0 then SUM(b.quantity*b.price)/SUM(b.quantity) else 0 end as 'Price'
+                        FROM All_Transactions b
+                    WHERE b.cancelled = 0 AND b.quantity > 0
+                    GROUP BY b.name
+                    HAVING 'Price' > 0)
+                GROUP BY Instrument """
 
         prms_positions = pd.read_sql_query(query, self.conn)
+
         return prms_positions
 
 # Login and Register
