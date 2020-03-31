@@ -175,6 +175,101 @@ class HomePageFrame(BaseFrame):
         webbrowser.open_new_tab(link)
 
 
+class CreateOrdersFrame(BaseFrame):
+    def __init__(self, parent, controller):
+        super().__init__(parent)
+
+        text_styles = {"justify": "left",
+                       "bg": "#94b4d1",
+                       "font": ("Verdana", 9)}
+
+        self.Presenter = p.CreateOrders(view=self)
+
+        back_frame = tk.Frame(self, bg="#94b4d1", relief="groove", bd=3)
+        back_frame.place(rely=0.05, relx=0.05, relheight=0.85, relwidth=0.9)
+
+        frame_order = tk.LabelFrame(back_frame, frame_styles, text="Create an Order")
+        frame_order.place(rely=0.03, relx=0.02, height=150, width=300)
+
+        label_order_1 = tk.Label(frame_order, text_styles, text="Units")
+        label_order_1.place(relx=0.20, rely=0.1)
+
+        label_order_2 = tk.Label(frame_order, text_styles, text="Instrument")
+        label_order_2.place(relx=0.20, rely=0.3)
+
+        label_order_3 = tk.Label(frame_order, text_styles, text="Acknowledge")
+        label_order_3.place(relx=0.20, rely=0.5)
+
+        frame_positions = tk.LabelFrame(back_frame, frame_styles, text="Your Current Positions")
+        frame_positions.place(rely=0.40, relx=0.02, height=300, width=300)
+
+        frame_details = tk.LabelFrame(back_frame, frame_styles, text="Execution Details")
+        frame_details.place(rely=0.03, relx=0.5, height=486, width=440)
+
+        self.label_details = tk.Label(frame_details, justify="left", bg="#D5D5D5", relief="ridge", bd=2, font=("Verdana", 10))
+        self.label_details.pack(expand=True, fill="both")
+
+        self.entry_units = ttk.Entry(frame_order, width=20, cursor="xterm")
+        self.entry_units.place(relx=0.5, rely=0.1)
+
+        self.entry_instruments = ttk.Entry(frame_order, width=20,  cursor="xterm")
+        self.entry_instruments.place(relx=0.5, rely=0.3)
+
+        self.check_val = tk.BooleanVar(parent)
+        check_btn = tk.Checkbutton(frame_order, variable=self.check_val, bg="#94b4d1")
+        check_btn.place(relx=0.5, rely=0.5)
+
+        btn_exec = ttk.Button(frame_order, text="Execute Trade", command=lambda: self.create_order())
+        btn_exec.place(relx=0.57, rely=0.7)
+
+        btn_position = ttk.Button(back_frame, text="Refresh Positions", command=lambda: self.refresh_basic_positions())
+        btn_position.place(relx=0.02, rely=0.35)
+
+        self.tv_positions = ttk.Treeview(frame_positions)
+        self.tv_positions.place(relheight=1, relwidth=0.995)
+        self.headers = ["Instrument", "Units"]
+
+        self.load_position_headers()
+        self.load_basic_positions()
+
+    def load_position_headers(self):
+        self.tv_positions['columns'] = self.headers
+        self.tv_positions["show"] = "headings"
+        for header in self.headers:
+            self.tv_positions.heading(header, text=header)
+            self.tv_positions.column(header, width=50)
+
+    def load_basic_positions(self):
+        self.Presenter.create_positions()
+
+    def clear_positions(self):
+        self.tv_positions.delete(*self.tv_positions.get_children())
+
+    def update_positions(self, rows):
+        for row in rows:
+            self.tv_positions.insert("", "end", values=row)
+
+    def refresh_basic_positions(self):
+        self.clear_positions()
+        self.load_basic_positions()
+
+    def create_order(self):
+        units = self.entry_units.get()
+        instrument = self.entry_instruments.get()
+        acknowledged = self.check_val.get()
+        self.Presenter.execute_trade(units=units,
+                                     instrument=instrument,
+                                     acknowledged=acknowledged)
+
+    def clear_entries(self):
+        self.entry_units.delete(0, "end")
+        self.entry_instruments.delete(0, "end")
+        self.check_val.set(False)
+
+    def display_order_info(self, text=""):
+        self.label_details["text"] = text
+
+
 class PositionRecFrame(BaseFrame):
     def __init__(self, parent, controller):
         super().__init__(parent)
@@ -184,11 +279,11 @@ class PositionRecFrame(BaseFrame):
         frame1 = tk.LabelFrame(self, frame_styles, text="Position Reconciliation")
         frame1.place(rely=0.10, relx=0.05, relheight=0.75, relwidth=0.9)
 
-        button_position = ttk.Button(self, text="Run Reconciliation", command=lambda: self.initiate_rec())
-        button_position.place(rely=0.9, relx=0.84)
+        btn_position = ttk.Button(self, text="Run Reconciliation", command=lambda: self.initiate_rec())
+        btn_position.place(rely=0.9, relx=0.84)
 
-        self.tv1 = ttk.Treeview(frame1)
-        self.tv1.place(relheight=1, relwidth=1)
+        self.tv_positions = ttk.Treeview(frame1)
+        self.tv_positions.place(relheight=1, relwidth=1)
         self.headers = ["Instrument", "Units",
                         "PRMS Units", "Avg Price",
                         "PRMS Avg Price", "Position Diff",
@@ -199,15 +294,15 @@ class PositionRecFrame(BaseFrame):
         self.Presenter.create_rec()
 
     def clear_table(self):
-        self.tv1.delete(*self.tv1.get_children())
+        self.tv_positions.delete(*self.tv_positions.get_children())
 
     def update_table(self, rows):
         for row in rows:
-            self.tv1.insert("", "end", values=row)
+            self.tv_positions.insert("", "end", values=row)
 
     def load_table_headers(self):
-        self.tv1['columns'] = self.headers
-        self.tv1["show"] = "headings"
+        self.tv_positions['columns'] = self.headers
+        self.tv_positions["show"] = "headings"
         for header in self.headers:
-            self.tv1.heading(header, text=header)
-            self.tv1.column(header, width=50)
+            self.tv_positions.heading(header, text=header)
+            self.tv_positions.column(header, width=50)

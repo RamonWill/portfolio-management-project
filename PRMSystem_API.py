@@ -1,8 +1,8 @@
 import tkinter as tk
 from tkinter import ttk
-import webbrowser
+# import webbrowser # TODO: can be deleted
 import Core.OandaAPI as OandaAPI
-from Core.NewsAPI import latest_news
+# from Core.NewsAPI import latest_news # TODO: can be deleted
 from Core.AlgoTradingAPI import Algo
 from Core.VantageAlphaAPI import AV_FXData
 from Core.Calculations import Convertprice
@@ -187,7 +187,7 @@ class MenuBar(tk.Menu):
 
         menu_orders = tk.Menu(self, menu_styles)
         self.add_cascade(label="Market Orders", menu=menu_orders)
-        menu_orders.add_command(label="Create Buy/Sell Order", command=lambda: parent.show_frame(CreateOrders))
+        menu_orders.add_command(label="Create Buy/Sell Order", command=lambda: parent.show_frame(views.CreateOrdersFrame))
         menu_orders.add_separator()
         menu_orders.add_command(label="FX Algo Trading", command=lambda: parent.show_frame(AlgoTrading))
 
@@ -224,7 +224,7 @@ class MyApp(tk.Tk):
         self.resizable(0, 0)
         self.geometry("1024x600")
         self.frames = {}
-        pages = (views.HomePageFrame, CreateOrders,
+        pages = (views.HomePageFrame, views.CreateOrdersFrame,
                  SecurityPrices, AlgoTrading,
                  CurrentPositions, views.PositionRecFrame,
                  TradeBookings)
@@ -403,93 +403,93 @@ class GUI(tk.Frame):
 #         Generate_pie_chart(self)
 #         Load_data()
 
-
-class CreateOrders(GUI):
-    def __init__(self, parent, controller):
-        GUI.__init__(self, parent)
-
-        text_styles = {"justify": "left",
-                       "bg": "#94b4d1",
-                       "font": ("Verdana", 9)}
-
-        back_frame = tk.Frame(self, bg="#94b4d1", relief="groove", bd=3)
-        back_frame.place(rely=0.05, relx=0.05, relheight=0.85, relwidth=0.9)
-
-        frame_order = tk.LabelFrame(back_frame, frame_styles, text="Create an Order")
-        frame_order.place(rely=0.03, relx=0.02, height=150, width=300)
-
-        label_order_1 = tk.Label(frame_order, text_styles, text="Units")
-        label_order_1.place(relx=0.20, rely=0.1)
-
-        label_order_2 = tk.Label(frame_order, text_styles, text="Instrument")
-        label_order_2.place(relx=0.20, rely=0.3)
-
-        label_order_3 = tk.Label(frame_order, text_styles, text="Acknowledge")
-        label_order_3.place(relx=0.20, rely=0.5)
-
-        frame_positions = tk.LabelFrame(back_frame, frame_styles, text="Your Current Positions")
-        frame_positions.place(rely=0.40, relx=0.02, height=300, width=300)
-
-        frame_exec_details = tk.LabelFrame(back_frame, frame_styles, text="Execution Details")
-        frame_exec_details.place(rely=0.03, relx=0.5, height=486, width=440)
-
-        label_exec_details = tk.Label(frame_exec_details, justify="left", bg="#D5D5D5", relief="ridge", bd=2, font=("Verdana", 10))
-        label_exec_details.pack(expand=True, fill="both")
-
-        entry_units = ttk.Entry(frame_order, width=20, cursor="xterm")
-        entry_units.place(relx=0.5, rely=0.1)
-
-        entry_instruments = ttk.Entry(frame_order, width=20,  cursor="xterm")
-        entry_instruments.place(relx=0.5, rely=0.3)
-
-        self.check_val = tk.BooleanVar(parent)
-        check_btn = tk.Checkbutton(frame_order, variable=self.check_val, bg="#94b4d1")
-        check_btn.place(relx=0.5, rely=0.5)
-
-        button = ttk.Button(frame_order, text="Execute Trade", command=lambda: Generateorder())
-        button.place(relx=0.57, rely=0.7)
-
-        btn_position = ttk.Button(back_frame, text="Refresh Positions", command=lambda: Refresh_basic_position())
-        btn_position.place(relx=0.02, rely=0.35)
-
-        tv1 = ttk.Treeview(frame_positions)
-        column_list = ["Instrument", "Units"]
-        tv1['columns'] = column_list
-        tv1["show"] = "headings"
-        for column in column_list:
-            tv1.heading(column, text=column)
-            tv1.column(column, width=50)
-        tv1.place(relheight=1, relwidth=0.995)
-
-        def Load_basic_position():
-            try:
-                positions = OandaAPI.Open_positions("basic")
-                position_rows = positions.to_numpy().tolist()
-                for row in position_rows:
-                    tv1.insert("", "end", values=row)
-            except AttributeError:
-                pass
-
-        def Generateorder():
-            units = entry_units.get()
-            instruments = entry_instruments.get()
-            acknowledged = self.check_val.get()
-            if acknowledged:
-                order_details = OandaAPI.Market_order(units, instruments)
-                entry_units.delete(0, "end")
-                entry_instruments.delete(0, "end")
-                self.check_val.set(False)
-                label_exec_details["text"] = OandaAPI.Execution_details(order_details)
-                OandaAPI.trade_to_db(order_details)
-
-            else:
-                label_exec_details["text"] = "The trade is not acknowledged.\nYour order has not been sent."
-
-        def Refresh_basic_position():
-            tv1.delete(*tv1.get_children())
-            Load_basic_position()
-
-        Load_basic_position()
+# TODO: CreateOrders(GUI) can be deleted
+# class CreateOrders(GUI):
+#     def __init__(self, parent, controller):
+#         GUI.__init__(self, parent)
+#
+#         text_styles = {"justify": "left",
+#                        "bg": "#94b4d1",
+#                        "font": ("Verdana", 9)}
+#
+#         back_frame = tk.Frame(self, bg="#94b4d1", relief="groove", bd=3)
+#         back_frame.place(rely=0.05, relx=0.05, relheight=0.85, relwidth=0.9)
+#
+#         frame_order = tk.LabelFrame(back_frame, frame_styles, text="Create an Order")
+#         frame_order.place(rely=0.03, relx=0.02, height=150, width=300)
+#
+#         label_order_1 = tk.Label(frame_order, text_styles, text="Units")
+#         label_order_1.place(relx=0.20, rely=0.1)
+#
+#         label_order_2 = tk.Label(frame_order, text_styles, text="Instrument")
+#         label_order_2.place(relx=0.20, rely=0.3)
+#
+#         label_order_3 = tk.Label(frame_order, text_styles, text="Acknowledge")
+#         label_order_3.place(relx=0.20, rely=0.5)
+#
+#         frame_positions = tk.LabelFrame(back_frame, frame_styles, text="Your Current Positions")
+#         frame_positions.place(rely=0.40, relx=0.02, height=300, width=300)
+#
+#         frame_exec_details = tk.LabelFrame(back_frame, frame_styles, text="Execution Details")
+#         frame_exec_details.place(rely=0.03, relx=0.5, height=486, width=440)
+#
+#         label_exec_details = tk.Label(frame_exec_details, justify="left", bg="#D5D5D5", relief="ridge", bd=2, font=("Verdana", 10))
+#         label_exec_details.pack(expand=True, fill="both")
+#
+#         entry_units = ttk.Entry(frame_order, width=20, cursor="xterm")
+#         entry_units.place(relx=0.5, rely=0.1)
+#
+#         entry_instruments = ttk.Entry(frame_order, width=20,  cursor="xterm")
+#         entry_instruments.place(relx=0.5, rely=0.3)
+#
+#         self.check_val = tk.BooleanVar(parent)
+#         check_btn = tk.Checkbutton(frame_order, variable=self.check_val, bg="#94b4d1")
+#         check_btn.place(relx=0.5, rely=0.5)
+#
+#         button = ttk.Button(frame_order, text="Execute Trade", command=lambda: Generateorder())
+#         button.place(relx=0.57, rely=0.7)
+#
+#         btn_position = ttk.Button(back_frame, text="Refresh Positions", command=lambda: Refresh_basic_position())
+#         btn_position.place(relx=0.02, rely=0.35)
+#
+#         tv1 = ttk.Treeview(frame_positions)
+#         column_list = ["Instrument", "Units"]
+#         tv1['columns'] = column_list
+#         tv1["show"] = "headings"
+#         for column in column_list:
+#             tv1.heading(column, text=column)
+#             tv1.column(column, width=50)
+#         tv1.place(relheight=1, relwidth=0.995)
+#
+#         def Load_basic_position():
+#             try:
+#                 positions = OandaAPI.Open_positions("basic")
+#                 position_rows = positions.to_numpy().tolist()
+#                 for row in position_rows:
+#                     tv1.insert("", "end", values=row)
+#             except AttributeError:
+#                 pass
+#
+#         def Generateorder():
+#             units = entry_units.get()
+#             instruments = entry_instruments.get()
+#             acknowledged = self.check_val.get()
+#             if acknowledged:
+#                 order_details = OandaAPI.Market_order(units, instruments)
+#                 entry_units.delete(0, "end")
+#                 entry_instruments.delete(0, "end")
+#                 self.check_val.set(False)
+#                 label_exec_details["text"] = OandaAPI.Execution_details(order_details)
+#                 OandaAPI.trade_to_db(order_details)
+#
+#             else:
+#                 label_exec_details["text"] = "The trade is not acknowledged.\nYour order has not been sent."
+#
+#         def Refresh_basic_position():
+#             tv1.delete(*tv1.get_children())
+#             Load_basic_position()
+#
+#         Load_basic_position()
 
 
 class SecurityPrices(GUI):

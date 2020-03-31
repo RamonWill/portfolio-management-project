@@ -41,6 +41,33 @@ class HomePage(object):
         info = rec.num_matches()
         self.View.update_rec_summary(text=info)
 
+
+class CreateOrders(object):
+    """docstring for CreateOrders."""
+
+    def __init__(self, view):
+        self.View = view
+
+    def create_positions(self):
+        try:
+            positions = OandaAPI.Open_positions("basic")
+            position_rows = positions.to_numpy().tolist()
+        except AttributeError:
+            return None
+        self.View.update_positions(rows=position_rows)
+
+    def execute_trade(self, units, instrument, acknowledged=False):
+        if not acknowledged:
+            info = "The trade is not acknowledged.\nYour order has not been sent."
+        else:
+            order_details = OandaAPI.Market_order(units, instrument)
+            OandaAPI.trade_to_db(order_details)
+            info = OandaAPI.Execution_details(order_details)
+
+        self.View.clear_entries()
+        self.View.display_order_info(text=info)
+        self.View.refresh_basic_positions()
+
 class PositionReconciliation(object):
     """docstring for """
     def __init__(self, view):
