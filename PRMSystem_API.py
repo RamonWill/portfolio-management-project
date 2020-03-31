@@ -12,7 +12,7 @@ from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg,
 import matplotlib.pyplot as plt
 from Setup.setup import Setup_database_tables
 import os
-
+from Views import views
 
 """This App project will create a python GUI interface that will perform
 various portfolio reconciliation tasks and other management data handling"""
@@ -181,7 +181,7 @@ class MenuBar(tk.Menu):
 
         menu_file = tk.Menu(self, menu_styles)
         self.add_cascade(label="File", menu=menu_file)
-        menu_file.add_command(label="Homepage", command=lambda: parent.show_frame(HomePage))
+        menu_file.add_command(label="Homepage", command=lambda: parent.show_frame(views.HomePageFrame))
         menu_file.add_separator()
         menu_file.add_command(label="Exit", command=lambda: parent.Quit_application())
 
@@ -201,7 +201,7 @@ class MenuBar(tk.Menu):
         menu_positions = tk.Menu(menu_operations, menu_styles)
         menu_operations.add_cascade(label="Positions", menu=menu_positions)
         menu_positions.add_command(label="View Positions", command=lambda: parent.show_frame(CurrentPositions))
-        menu_positions.add_command(label="Position Reconciliation", command=lambda: parent.show_frame(PositionReconciliation))
+        menu_positions.add_command(label="Position Reconciliation", command=lambda: parent.show_frame(views.PositionRecFrame))
 
         menu_calculations = tk.Menu(self, menu_styles)
         self.add_cascade(label="Tools/Calculators", menu=menu_calculations)
@@ -221,20 +221,18 @@ class MyApp(tk.Tk):
         main_frame = tk.Frame(self, bg="#84CEEB", height=600, width=1024)
         main_frame.pack_propagate(0)
         main_frame.pack(fill="both", expand="true")
-        main_frame.grid_rowconfigure(0, weight=1)
-        main_frame.grid_columnconfigure(0, weight=1)
         self.resizable(0, 0)
         self.geometry("1024x600")
         self.frames = {}
-        pages = (HomePage, CreateOrders,
+        pages = (views.HomePageFrame, CreateOrders,
                  SecurityPrices, AlgoTrading,
-                 CurrentPositions, PositionReconciliation,
+                 CurrentPositions, views.PositionRecFrame,
                  TradeBookings)
         for F in pages:
             frame = F(main_frame, self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")
-        self.show_frame(HomePage)
+        self.show_frame(views.HomePageFrame)
         menubar = MenuBar(self)
         tk.Tk.config(self, menu=menubar)
 
@@ -261,151 +259,149 @@ class GUI(tk.Frame):
         main_frame = tk.Frame(self, bg="#94b4d1", height=600, width=1024)
         main_frame.pack_propagate(0)
         main_frame.pack(fill="both", expand="true")
-        main_frame.grid_rowconfigure(0, weight=1)
-        main_frame.grid_columnconfigure(0, weight=1)
 
-
-class HomePage(GUI):
-    def __init__(self, parent, controller):
-        GUI.__init__(self, parent)
-
-        frame_account = tk.LabelFrame(self, frame_styles, text="Account Details")
-        frame_account.place(rely=0.05, relx=0.02, height=120, width=300)
-
-        frame_prices = tk.LabelFrame(self, frame_styles, text="Tradable Securities")
-        frame_prices.place(rely=0.30, relx=0.02, height=375, width=400)
-
-        frame_news = tk.LabelFrame(self, frame_styles, text="Latest News Headlines")
-        frame_news.place(rely=0.05, relx=0.45, height=280, width=550)
-
-        refresh_btn = ttk.Button(self, text="Refresh data", command=lambda: Refresh_data())
-        refresh_btn.place(rely=0.94, relx=0.9)
-
-        frame_rec = tk.LabelFrame(self, frame_styles, text="Reconciliations at a Glance")
-        frame_rec.place(rely=0.55, relx=0.80, height=222, width=190)
-
-        label_rec_info = tk.Label(frame_rec, justify="left", bg="#D5D5D5", relief="ridge", bd=2, font=("Verdana", 10))
-        label_rec_info.pack(expand=True, fill="both")
-
-        frame_chart = tk.LabelFrame(self, frame_styles, text="Positions at a Glance")
-        frame_chart.place(rely=0.55, relx=0.45, height=222, width=350)
-        pie_chart = tk.Canvas(frame_chart, bg="#D5D5D5", relief="solid", bd=1)
-        pie_chart.pack()
-
-        self.pie_canvas = None
-
-        tv1_account = ttk.Treeview(frame_account)
-        column_list_account = ["", "Information"]
-        tv1_account['columns'] = column_list_account
-        tv1_account["show"] = "headings"  # removes empty column
-        for column in column_list_account:
-            tv1_account.heading(column, text=column)
-            tv1_account.column(column, width=75)
-        tv1_account.place(relheight=1, relwidth=0.995)
-
-        tv2_prices = ttk.Treeview(frame_prices)
-        column_list_prices = ["Instrument", "Bid Price", "Ask Price"]
-        tv2_prices['columns'] = column_list_prices
-        tv2_prices["show"] = "headings"
-        for column in column_list_prices:
-            tv2_prices.heading(column, text=column)
-            tv2_prices.column(column, width=50)
-        tv2_prices.place(relheight=1, relwidth=0.995)
-        treescroll_prices = tk.Scrollbar(frame_prices)
-        treescroll_prices.configure(command=tv2_prices.yview)
-        tv2_prices.configure(yscrollcommand=treescroll_prices.set)
-        treescroll_prices.pack(side="right", fill="y")
-
-        tv3_news = ttk.Treeview(frame_news)
-        column_list_news = ["Top Headlines", "Source", "Link"]
-        tv3_news['columns'] = column_list_news
-        tv3_news["show"] = "headings"
-        for column in column_list_news:
-            if column == "Top Headlines" or column == "Link":
-                tv3_news.heading(column, text=column)
-                tv3_news.column(column, width=200)
-            else:
-                tv3_news.heading(column, text=column)
-                tv3_news.column(column, width=40)
-        tv3_news.place(relheight=1, relwidth=0.995)
-
-        def reconciliations_view():
-            rec = OandaAPI.Reconciliation()
-            info = rec.num_matches()
-            label_rec_info["text"] = info
-
-        def Open_news_link(event):
-            row_id = tv3_news.selection()
-            link = tv3_news.item(row_id, "values")[2]
-            webbrowser.open_new_tab(link)
-
-        tv3_news.bind("<Double-1>", Open_news_link)  # initiates on 2nd click
-
-        def Load_data():
-            account = OandaAPI.Oanda_acc_summary()
-            account_rows = account.to_numpy().tolist()
-            for row in account_rows:
-                tv1_account.insert("", "end", values=row)
-
-            price_rows = OandaAPI.Oanda_prices()
-            for row in price_rows:
-                tv2_prices.insert("", "end", values=row)
-
-            news_rows = latest_news()
-            for row in news_rows:
-                tv3_news.insert("", "end", values=row)
-
-            reconciliations_view()
-
-        def Refresh_data():
-            tv1_account.delete(*tv1_account.get_children())  # *=splat operator
-            tv2_prices.delete(*tv2_prices.get_children())
-            tv3_news.delete(*tv3_news.get_children())
-            Load_data()
-
-        def Generate_pie_chart(self):
-            try:
-                if self.pie_canvas is not None:
-                    self.pie_canvas.destory()
-            except AttributeError:
-                print("The Pie Chart is empty")
-
-            try:
-                with PRMS_Database() as db:
-                    df = db.get_largest_positions()
-                    names = df["name"]
-            except TypeError:
-                print("Failed to generate pie chart. Are the positions empty?")
-                return None
-
-            market_vals = abs(df["MarketVal"])
-            if len(names) == 0 or len(names) == 1:
-                explode = None
-            else:
-                explode = tuple([0.1]+[0.05]*(len(names)-1))
-
-            colors = ["#377E9B", "#559CB9", "#7DC4E1", "#AFF6FF", "#D7FFFF"]
-            fig = plt.Figure(figsize=(4, 4), facecolor="#d4d8d9")
-            ax_pie = fig.add_subplot(111)
-            ax_pie.pie(market_vals,
-                       colors=colors,
-                       explode=explode,
-                       pctdistance=0.85,
-                       startangle=90)
-            centre_circle = plt.Circle((0, 0), 0.70, fc="#d4d8d9")
-            ax_pie.add_artist(centre_circle)
-            ax_pie.axis("equal")
-            ax_pie.set_title("Largest Positions")
-            pie_legend = ax_pie.legend(names, loc='upper left', bbox_to_anchor=(0.74, 0.35), fontsize=6)
-            pie_frame = pie_legend.get_frame()
-            pie_frame.set_facecolor("#babebf")
-            pie_frame.set_edgecolor("#000000")
-            canvas = FigureCanvasTkAgg(fig, pie_chart)
-            self.pie_canvas = canvas.get_tk_widget()
-            self.pie_canvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
-
-        Generate_pie_chart(self)
-        Load_data()
+# TODO: HomePage(GUI) can be deleted
+# class HomePage(GUI):
+#     def __init__(self, parent, controller):
+#         GUI.__init__(self, parent)
+#
+#         frame_account = tk.LabelFrame(self, frame_styles, text="Account Details")
+#         frame_account.place(rely=0.05, relx=0.02, height=120, width=300)
+#
+#         frame_prices = tk.LabelFrame(self, frame_styles, text="Tradable Securities")
+#         frame_prices.place(rely=0.30, relx=0.02, height=375, width=400)
+#
+#         frame_news = tk.LabelFrame(self, frame_styles, text="Latest News Headlines")
+#         frame_news.place(rely=0.05, relx=0.45, height=280, width=550)
+#
+#         refresh_btn = ttk.Button(self, text="Refresh data", command=lambda: Refresh_data())
+#         refresh_btn.place(rely=0.94, relx=0.9)
+#
+#         frame_rec = tk.LabelFrame(self, frame_styles, text="Reconciliations at a Glance")
+#         frame_rec.place(rely=0.55, relx=0.80, height=222, width=190)
+#
+#         label_rec_info = tk.Label(frame_rec, justify="left", bg="#D5D5D5", relief="ridge", bd=2, font=("Verdana", 10))
+#         label_rec_info.pack(expand=True, fill="both")
+#
+#         frame_chart = tk.LabelFrame(self, frame_styles, text="Positions at a Glance")
+#         frame_chart.place(rely=0.55, relx=0.45, height=222, width=350)
+#         pie_chart = tk.Canvas(frame_chart, bg="#D5D5D5", relief="solid", bd=1)
+#         pie_chart.pack()
+#
+#         self.pie_canvas = None
+#
+#         tv1_account = ttk.Treeview(frame_account)
+#         column_list_account = ["", "Information"]
+#         tv1_account['columns'] = column_list_account
+#         tv1_account["show"] = "headings"  # removes empty column
+#         for column in column_list_account:
+#             tv1_account.heading(column, text=column)
+#             tv1_account.column(column, width=75)
+#         tv1_account.place(relheight=1, relwidth=0.995)
+#
+#         tv2_prices = ttk.Treeview(frame_prices)
+#         column_list_prices = ["Instrument", "Bid Price", "Ask Price"]
+#         tv2_prices['columns'] = column_list_prices
+#         tv2_prices["show"] = "headings"
+#         for column in column_list_prices:
+#             tv2_prices.heading(column, text=column)
+#             tv2_prices.column(column, width=50)
+#         tv2_prices.place(relheight=1, relwidth=0.995)
+#         treescroll_prices = tk.Scrollbar(frame_prices)
+#         treescroll_prices.configure(command=tv2_prices.yview)
+#         tv2_prices.configure(yscrollcommand=treescroll_prices.set)
+#         treescroll_prices.pack(side="right", fill="y")
+#
+#         tv3_news = ttk.Treeview(frame_news)
+#         column_list_news = ["Top Headlines", "Source", "Link"]
+#         tv3_news['columns'] = column_list_news
+#         tv3_news["show"] = "headings"
+#         for column in column_list_news:
+#             if column == "Top Headlines" or column == "Link":
+#                 tv3_news.heading(column, text=column)
+#                 tv3_news.column(column, width=200)
+#             else:
+#                 tv3_news.heading(column, text=column)
+#                 tv3_news.column(column, width=40)
+#         tv3_news.place(relheight=1, relwidth=0.995)
+#
+#         def reconciliations_view():
+#             rec = OandaAPI.Reconciliation()
+#             info = rec.num_matches()
+#             label_rec_info["text"] = info
+#
+#         def Open_news_link(event):
+#             row_id = tv3_news.selection()
+#             link = tv3_news.item(row_id, "values")[2]
+#             webbrowser.open_new_tab(link)
+#
+#         tv3_news.bind("<Double-1>", Open_news_link)  # initiates on 2nd click
+#
+#         def Load_data():
+#             account = OandaAPI.Oanda_acc_summary()
+#             account_rows = account.to_numpy().tolist()
+#             for row in account_rows:
+#                 tv1_account.insert("", "end", values=row)
+#
+#             price_rows = OandaAPI.Oanda_prices()
+#             for row in price_rows:
+#                 tv2_prices.insert("", "end", values=row)
+#
+#             news_rows = latest_news()
+#             for row in news_rows:
+#                 tv3_news.insert("", "end", values=row)
+#
+#             reconciliations_view()
+#
+#         def Refresh_data():
+#             tv1_account.delete(*tv1_account.get_children())  # *=splat operator
+#             tv2_prices.delete(*tv2_prices.get_children())
+#             tv3_news.delete(*tv3_news.get_children())
+#             Load_data()
+#
+#         def Generate_pie_chart(self):
+#             try:
+#                 if self.pie_canvas is not None:
+#                     self.pie_canvas.destory()
+#             except AttributeError:
+#                 print("The Pie Chart is empty")
+#
+#             try:
+#                 with PRMS_Database() as db:
+#                     df = db.get_largest_positions()
+#                     names = df["name"]
+#             except TypeError:
+#                 print("Failed to generate pie chart. Are the positions empty?")
+#                 return None
+#
+#             market_vals = abs(df["MarketVal"])
+#             if len(names) == 0 or len(names) == 1:
+#                 explode = None
+#             else:
+#                 explode = tuple([0.1]+[0.05]*(len(names)-1))
+#
+#             colors = ["#377E9B", "#559CB9", "#7DC4E1", "#AFF6FF", "#D7FFFF"]
+#             fig = plt.Figure(figsize=(4, 4), facecolor="#d4d8d9")
+#             ax_pie = fig.add_subplot(111)
+#             ax_pie.pie(market_vals,
+#                        colors=colors,
+#                        explode=explode,
+#                        pctdistance=0.85,
+#                        startangle=90)
+#             centre_circle = plt.Circle((0, 0), 0.70, fc="#d4d8d9")
+#             ax_pie.add_artist(centre_circle)
+#             ax_pie.axis("equal")
+#             ax_pie.set_title("Largest Positions")
+#             pie_legend = ax_pie.legend(names, loc='upper left', bbox_to_anchor=(0.74, 0.35), fontsize=6)
+#             pie_frame = pie_legend.get_frame()
+#             pie_frame.set_facecolor("#babebf")
+#             pie_frame.set_edgecolor("#000000")
+#             canvas = FigureCanvasTkAgg(fig, pie_chart)
+#             self.pie_canvas = canvas.get_tk_widget()
+#             self.pie_canvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+#
+#         Generate_pie_chart(self)
+#         Load_data()
 
 
 class CreateOrders(GUI):
@@ -767,36 +763,36 @@ class CurrentPositions(GUI):
 
         Load_advanced_position()
 
-
-class PositionReconciliation(GUI):
-    def __init__(self, parent, controller):
-        GUI.__init__(self, parent)
-
-        frame1 = tk.LabelFrame(self, frame_styles, text="Position Reconciliation")
-        frame1.place(rely=0.10, relx=0.05, relheight=0.75, relwidth=0.9)
-
-        tv1 = ttk.Treeview(frame1)
-        column_list = ["Instrument", "Units", "PRMS Units",
-                       "Avg Price", "PRMS Avg Price", "Position Diff",
-                       "Price Diff", "Commentary"]
-        tv1['columns'] = column_list
-        tv1["show"] = "headings"
-
-        for column in column_list:
-            tv1.heading(column, text=column)
-            tv1.column(column, width=50)
-        tv1.place(relheight=1, relwidth=1)
-
-        button_position = ttk.Button(self, text="Run Reconciliation", command=lambda: create_rec())
-        button_position.place(rely=0.9, relx=0.84)
-
-        def create_rec():
-            tv1.delete(*tv1.get_children())
-            rec = OandaAPI.Reconciliation()
-            rec_table = rec.generate_rec()
-            rec_table_rows = rec_table.to_numpy().tolist()
-            for row in rec_table_rows:
-                tv1.insert("", "end", values=row)
+# TODO: PositionReconciliation(GUI) can be deleted
+# class PositionReconciliation(GUI):
+#     def __init__(self, parent, controller):
+#         GUI.__init__(self, parent)
+#
+#         frame1 = tk.LabelFrame(self, frame_styles, text="Position Reconciliation")
+#         frame1.place(rely=0.10, relx=0.05, relheight=0.75, relwidth=0.9)
+#
+#         tv1 = ttk.Treeview(frame1)
+#         column_list = ["Instrument", "Units", "PRMS Units",
+#                        "Avg Price", "PRMS Avg Price", "Position Diff",
+#                        "Price Diff", "Commentary"]
+#         tv1['columns'] = column_list
+#         tv1["show"] = "headings"
+#
+#         for column in column_list:
+#             tv1.heading(column, text=column)
+#             tv1.column(column, width=50)
+#         tv1.place(relheight=1, relwidth=1)
+#
+#         button_position = ttk.Button(self, text="Run Reconciliation", command=lambda: create_rec())
+#         button_position.place(rely=0.9, relx=0.84)
+#
+#         def create_rec():
+#             tv1.delete(*tv1.get_children())
+#             rec = OandaAPI.Reconciliation()
+#             rec_table = rec.generate_rec()
+#             rec_table_rows = rec_table.to_numpy().tolist()
+#             for row in rec_table_rows:
+#                 tv1.insert("", "end", values=row)
 
 
 class TradeBookings(GUI):
