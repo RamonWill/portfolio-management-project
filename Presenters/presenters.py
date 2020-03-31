@@ -8,8 +8,8 @@ import Core.OandaAPI as OandaAPI
 from Core.NewsAPI import latest_news
 from Core.DatabaseConnections import PRMS_Database
 
+
 class HomePage(object):
-    """docstring for """
 
     def __init__(self, view):
         super().__init__()
@@ -43,7 +43,6 @@ class HomePage(object):
 
 
 class CreateOrders(object):
-    """docstring for CreateOrders."""
 
     def __init__(self, view):
         self.View = view
@@ -68,8 +67,21 @@ class CreateOrders(object):
         self.View.display_order_info(text=info)
         self.View.refresh_basic_positions()
 
+class CurrentPositions(object):
+
+    def __init__(self, view):
+        self.View = view
+
+    def create_positions(self):
+        try:
+            positions = OandaAPI.Open_positions("advanced")
+            position_rows = positions.to_numpy().tolist()
+        except AttributeError:
+            return None
+        self.View.update_positions(rows=position_rows)
+
 class PositionReconciliation(object):
-    """docstring for """
+
     def __init__(self, view):
         self.View = view
 

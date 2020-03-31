@@ -200,7 +200,7 @@ class MenuBar(tk.Menu):
         menu_operations.add_command(label="Trade Bookings", command=lambda: parent.show_frame(TradeBookings))
         menu_positions = tk.Menu(menu_operations, menu_styles)
         menu_operations.add_cascade(label="Positions", menu=menu_positions)
-        menu_positions.add_command(label="View Positions", command=lambda: parent.show_frame(CurrentPositions))
+        menu_positions.add_command(label="View Positions", command=lambda: parent.show_frame(views.CurrentPositionsFrame))
         menu_positions.add_command(label="Position Reconciliation", command=lambda: parent.show_frame(views.PositionRecFrame))
 
         menu_calculations = tk.Menu(self, menu_styles)
@@ -226,7 +226,7 @@ class MyApp(tk.Tk):
         self.frames = {}
         pages = (views.HomePageFrame, views.CreateOrdersFrame,
                  SecurityPrices, AlgoTrading,
-                 CurrentPositions, views.PositionRecFrame,
+                 views.CurrentPositionsFrame, views.PositionRecFrame,
                  TradeBookings)
         for F in pages:
             frame = F(main_frame, self)
@@ -728,40 +728,40 @@ class AlgoTrading(GUI):
             self.canvas_chart = canvas.get_tk_widget()
             self.canvas_chart.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
-
-class CurrentPositions(GUI):
-    def __init__(self, parent, controller):
-        GUI.__init__(self, parent)
-
-        frame1 = tk.LabelFrame(self, frame_styles, text="All Positions")
-        frame1.place(rely=0.05, relx=0.05, relheight=0.85, relwidth=0.9)
-
-        tv1 = ttk.Treeview(frame1)
-        column_list = ["Instrument", "Units",
-                       "Average Price", "Unrealised P&L",
-                       "P&L"]
-        tv1['columns'] = column_list
-        tv1["show"] = "headings"
-
-        for column in column_list:
-            tv1.heading(column, text=column)
-            tv1.column(column, width=50)
-        tv1.place(relheight=1, relwidth=1)
-
-        button_position = ttk.Button(self, text="Refresh Positions", command=lambda: Refresh_advanced_position())
-        button_position.place(rely=0.9, relx=0.84)
-
-        def Load_advanced_position():
-            positions = OandaAPI.Open_positions("advanced")
-            positions_rows = positions.to_numpy().tolist()
-            for row in positions_rows:
-                tv1.insert("", "end", values=row)
-
-        def Refresh_advanced_position():
-            tv1.delete(*tv1.get_children())
-            Load_advanced_position()
-
-        Load_advanced_position()
+# # TODO: This can be deleted
+# class CurrentPositions(GUI):
+#     def __init__(self, parent, controller):
+#         GUI.__init__(self, parent)
+#
+#         frame1 = tk.LabelFrame(self, frame_styles, text="All Positions")
+#         frame1.place(rely=0.05, relx=0.05, relheight=0.85, relwidth=0.9)
+#
+#         tv1 = ttk.Treeview(frame1)
+#         column_list = ["Instrument", "Units",
+#                        "Average Price", "Unrealised P&L",
+#                        "P&L"]
+#         tv1['columns'] = column_list
+#         tv1["show"] = "headings"
+#
+#         for column in column_list:
+#             tv1.heading(column, text=column)
+#             tv1.column(column, width=50)
+#         tv1.place(relheight=1, relwidth=1)
+#
+#         button_position = ttk.Button(self, text="Refresh Positions", command=lambda: Refresh_advanced_position())
+#         button_position.place(rely=0.9, relx=0.84)
+#
+#         def Load_advanced_position():
+#             positions = OandaAPI.Open_positions("advanced")
+#             positions_rows = positions.to_numpy().tolist()
+#             for row in positions_rows:
+#                 tv1.insert("", "end", values=row)
+#
+#         def Refresh_advanced_position():
+#             tv1.delete(*tv1.get_children())
+#             Load_advanced_position()
+#
+#         Load_advanced_position()
 
 # TODO: PositionReconciliation(GUI) can be deleted
 # class PositionReconciliation(GUI):

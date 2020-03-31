@@ -222,7 +222,7 @@ class CreateOrdersFrame(BaseFrame):
         btn_exec = ttk.Button(frame_order, text="Execute Trade", command=lambda: self.create_order())
         btn_exec.place(relx=0.57, rely=0.7)
 
-        btn_position = ttk.Button(back_frame, text="Refresh Positions", command=lambda: self.refresh_basic_positions())
+        btn_position = ttk.Button(back_frame, text="Refresh Positions", command=lambda: self.refresh_positions())
         btn_position.place(relx=0.02, rely=0.35)
 
         self.tv_positions = ttk.Treeview(frame_positions)
@@ -249,7 +249,7 @@ class CreateOrdersFrame(BaseFrame):
         for row in rows:
             self.tv_positions.insert("", "end", values=row)
 
-    def refresh_basic_positions(self):
+    def refresh_positions(self):
         self.clear_positions()
         self.load_basic_positions()
 
@@ -270,10 +270,52 @@ class CreateOrdersFrame(BaseFrame):
         self.label_details["text"] = text
 
 
+class CurrentPositionsFrame(BaseFrame):
+    def __init__(self, parent, controller):
+        super().__init__(parent)
+
+        self.Presenter = p.CurrentPositions(view=self)
+
+        frame1 = tk.LabelFrame(self, frame_styles, text="All Positions")
+        frame1.place(rely=0.05, relx=0.05, relheight=0.85, relwidth=0.9)
+
+        btn_position = ttk.Button(self, text="Refresh Positions", command=lambda: self.refresh_positions())
+        btn_position.place(rely=0.9, relx=0.84)
+
+        self.tv_positions = ttk.Treeview(frame1)
+        self.tv_positions.place(relheight=1, relwidth=1)
+        self.headers = ["Instrument", "Units", "Average Price",
+                        "Unrealised P&L", "P&L"]
+
+        self.load_position_headers()
+        self.load_positions()
+
+    def load_position_headers(self):
+        self.tv_positions['columns'] = self.headers
+        self.tv_positions["show"] = "headings"
+        for header in self.headers:
+            self.tv_positions.heading(header, text=header)
+            self.tv_positions.column(header, width=50)
+
+    def load_positions(self):
+        self.Presenter.create_positions()
+
+    def clear_positions(self):
+        self.tv_positions.delete(*self.tv_positions.get_children())
+
+    def update_positions(self, rows):
+        for row in rows:
+            self.tv_positions.insert("", "end", values=row)
+
+    def refresh_positions(self):
+        self.clear_positions()
+        self.load_positions()
+
+
 class PositionRecFrame(BaseFrame):
     def __init__(self, parent, controller):
         super().__init__(parent)
-        self.controller = controller
+
         self.Presenter = p.PositionReconciliation(view=self)
 
         frame1 = tk.LabelFrame(self, frame_styles, text="Position Reconciliation")
