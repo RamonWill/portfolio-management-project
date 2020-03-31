@@ -7,6 +7,7 @@ sys.path.insert(0, str(PARENT_PATH))
 import Core.OandaAPI as OandaAPI
 from Core.NewsAPI import latest_news
 from Core.DatabaseConnections import PRMS_Database
+from Core.VantageAlphaAPI import AV_FXData
 
 
 class HomePage(object):
@@ -65,7 +66,26 @@ class CreateOrders(object):
 
         self.View.clear_entries()
         self.View.display_order_info(text=info)
-        self.View.refresh_basic_positions()
+        self.View.refresh_positions()
+
+
+class SecurityPrices(object):
+
+    def __init__(self, view):
+        self.View = view
+
+    def create_chart(self, period, indicator, currency1, currency2):
+        Chart = AV_FXData(period, currency1, currency2, indicator)
+        Chart_data = Chart.Fx_chart_gui()
+
+        Chart_prices = Chart_data.tail(4)  # gets the 4 most recent prices
+        Chart_prices = Chart_prices[["Date", "Close Price"]]
+        prices = Chart_prices.to_numpy().tolist()
+
+        self.View.draw_chart(data=Chart_data, indicator=indicator)
+        self.View.clear_prices()
+        self.View.display_prices(rows=prices)
+
 
 class CurrentPositions(object):
 
@@ -79,6 +99,7 @@ class CurrentPositions(object):
         except AttributeError:
             return None
         self.View.update_positions(rows=position_rows)
+
 
 class PositionReconciliation(object):
 
