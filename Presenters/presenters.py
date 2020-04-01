@@ -8,7 +8,8 @@ import Core.OandaAPI as OandaAPI
 from Core.NewsAPI import latest_news
 from Core.DatabaseConnections import PRMS_Database
 from Core.VantageAlphaAPI import AV_FXData
-
+from Core.AlgoTradingAPI import Algo
+from Core.Calculations import Convertprice
 
 class HomePage(object):
 
@@ -69,6 +70,33 @@ class CreateOrders(object):
         self.View.refresh_positions()
 
 
+class AlgoTrading(object):
+    def __init__(self, view):
+        self.View = view
+        self.counter = 0
+
+    def create_algo_chart(self, currency1, currency2, strategy):
+        Chart = Algo(currency1, currency2)
+        Chart_data = Chart.live_algo_chart(strategy)
+        self.View.draw_algo_chart(data=Chart_data, strategy=strategy)
+
+    ## PAUSED to be reviewed
+    # def run_algorithm(self, timer, units, currency1, currency2, strategy):
+    #     while timer > self.counter:
+    #         print(f"order initiated, {self.counter} interval elapsed")
+    #         root.after(120000,
+    #                    self.Algorithm_orders(units, currency1, currency2, strategy))  # 120k millsecs = 2mins # i think instead of root its controller
+    #         self.counter += 2
+    #     self.counter = 0
+    #     print("Time period elapsed")
+    #
+    # def Algorithm_orders(self): # executing trades
+    #     units = self.entry_units.get()
+    #     ccy1 = self.entry_ccy1.get()
+    #     ccy2 = self.entry_ccy2.get()
+    #     algo_strategy = self.strategy.get()
+    #     self.label_fil["text"] = Algo(ccy1, ccy2).algo_execution(units, algo_strategy)
+
 class SecurityPrices(object):
 
     def __init__(self, view):
@@ -112,3 +140,36 @@ class PositionReconciliation(object):
         rec_table = rec.generate_rec()
         rec_table_rows = rec_table.to_numpy().tolist()
         self.View.update_table(rows=rec_table_rows)
+
+
+class TradeBookings(object):
+    def __init__(self, view):
+        self.View = view
+
+    def get_transactions(self):
+        with PRMS_Database() as db:
+            positions = db.get_all_positions()
+        entries = positions.to_numpy().tolist()
+        self.View.display_transactions(rows=entries)
+
+    def store_transaction(self, name, quantity, price):
+        with PRMS_Database() as db:
+            check = db.validate_entry(name, quantity, price)
+        if isinstance(check, str):  # if validation Failed
+            print(check)
+            return None
+        else:
+            print(db.add_to_db(name, quantity, price))
+
+    def set_transaction_status(self, id, toggle):
+        with PRMS_Database() as db:
+            print(db.cancelled_toggle(id, toggle))
+
+
+class UsTreasuryConvWindow(object):
+    def __init__(self, view):
+        self.View = view
+
+    def conversion(self, price):
+        converted_price = Convertprice(price)
+        self.View.display_conversion(new_price=converted_price)

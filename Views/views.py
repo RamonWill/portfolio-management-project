@@ -26,7 +26,7 @@ class BaseFrame(tk.Frame):
 
 
 class HomePageFrame(BaseFrame):
-    def __init__(self, parent, controller):
+    def __init__(self, parent, app):
         super().__init__(parent)
 
         self.Presenter = p.HomePage(view=self)
@@ -176,7 +176,7 @@ class HomePageFrame(BaseFrame):
 
 
 class CreateOrdersFrame(BaseFrame):
-    def __init__(self, parent, controller):
+    def __init__(self, parent, app):
         super().__init__(parent)
 
         text_styles = {"justify": "left",
@@ -270,8 +270,119 @@ class CreateOrdersFrame(BaseFrame):
         self.label_details["text"] = text
 
 
+class AlgoTradingFrame(BaseFrame):
+    def __init__(self, parent, app):
+        super().__init__(parent)
+
+        text_styles = {"justify": "left",
+                       "bg": "#94b4d1",
+                       "font": ("Verdana", 9)}
+
+        self.Presenter = p.AlgoTrading(view=self)
+
+        frame_chart = tk.LabelFrame(self, frame_styles, text="Graph with strategies")
+        frame_chart.place(rely=0.40, relx=0.05, relheight=0.55, relwidth=0.9)
+        self.canvas_chart = tk.Canvas(frame_chart)
+        self.canvas_chart.pack(expand=True, fill="both")
+
+        frame_order = tk.LabelFrame(self, frame_styles, text="Algorithm Settings")
+        frame_order.place(rely=0.05, relx=0.05, height=200, width=400)
+
+        frame_fil = tk.LabelFrame(self, frame_styles, text="Live Algorithm Responses")
+        frame_fil.place(rely=0.05, relx=0.50, height=200, width=400)
+        self.label_fil = tk.Label(frame_fil, bg="#D5D5D5", relief="ridge", bd=3, font=("Verdana", 8))
+        self.label_fil.pack(expand=True, fill="both")
+
+        list_strategy = ("Golden Cross", "RSI")
+        list_duration = ("1 min", "6 mins", "10 mins", "16 mins", "20 mins")
+
+        self.strategy = tk.StringVar(frame_order)
+        self.duration = tk.StringVar(frame_order)
+
+        label_units = tk.Label(frame_order, text_styles, text="Units")
+        label_units.place(relx=0.13, rely=0.1)
+        label_ccy1 = tk.Label(frame_order, text_styles, text="Currency 1")
+        label_ccy1.place(relx=0.13, rely=0.25)
+        label_ccy2 = tk.Label(frame_order, text_styles, text="Currency 2")
+        label_ccy2.place(relx=0.13, rely=0.40)
+        label_strategy = tk.Label(frame_order, text_styles, text="Strategy")
+        label_strategy.place(relx=0.13, rely=0.60)
+        label_duration = tk.Label(frame_order, text_styles, text="Duration")
+        label_duration.place(relx=0.13, rely=0.80)
+
+        self.entry_units = ttk.Entry(frame_order, width=20, cursor="xterm")
+        self.entry_units.place(relx=0.35, rely=0.1)
+        self.entry_ccy1 = ttk.Entry(frame_order, width=20, cursor="xterm")
+        self.entry_ccy1.place(relx=0.35, rely=0.25)
+        self.entry_ccy2 = ttk.Entry(frame_order, width=20, cursor="xterm")
+        self.entry_ccy2.place(relx=0.35, rely=0.40)
+
+        option_menu_strategy = ttk.OptionMenu(frame_order, self.strategy, list_strategy[0], *list_strategy)
+        option_menu_strategy.place(relx=0.35, rely=0.60)
+        option_menu_duration = ttk.OptionMenu(frame_order, self.duration, list_duration[0], *list_duration)
+        option_menu_duration.place(relx=0.35, rely=0.80)
+
+        btn_execution = ttk.Button(frame_order, text="Execute Algorithm", command=lambda: self.initate_algorithm())
+        btn_execution.place(relx=0.69, rely=0.71)
+        btn_chart = ttk.Button(frame_order, text="Draw Intraday Chart", command=lambda: self.initiate_algo_chart())
+        btn_chart.place(relx=0.69, rely=0.86)
+
+        self.canvas1 = None
+        self.counter = 0
+
+    def initate_algorithm(self):
+        print("To be reviewed")
+        # duration_dict = {"1 min": 1, "6 mins": 6,
+        #                  "10 mins": 10, "16 mins": 16,
+        #                  "20 mins": 20}
+        # get_duration = self.duration.get()
+        # duration_minutes = duration_dict.get(get_duration)
+        #
+        # units = self.units.get()
+        # ccy1 = self.entry_ccy1.get()
+        # ccy2 = self.entry_ccy2.get()
+        # strategy = self.strategy.get()
+        # self.Presenter.run_algorithm(timer=duration_minutes,
+        #                              units=units,
+        #                              currency1=ccy1,
+        #                              currency2=ccy2,
+        #                              strategy=strategy)
+
+    def initiate_algo_chart(self):
+        self.remove_existing_chart()
+        ccy1 = self.entry_ccy1.get()
+        ccy2 = self.entry_ccy2.get()
+        strategy = self.strategy.get()
+        self.Presenter.create_algo_chart(currency1=ccy1,
+                                         currency2=ccy2,
+                                         strategy=strategy)
+
+    def remove_existing_chart(self):
+        if self.canvas1:
+            self.canvas1.destroy()
+
+    def draw_algo_chart(self, data, strategy):
+        figure = plt.Figure(figsize=(4, 5), facecolor="#f0f6f7", dpi=80)
+        axis = figure.add_subplot(111)
+        axis.tick_params(axis="x", labelsize=9)
+
+        if strategy == "Golden Cross":
+            data.plot(kind="line", x="Date", y="Close Price", ax=axis)
+            data.plot(kind="line", x="Date", y="5-period SMA value", ax=axis)
+            data.plot(kind="line", x="Date", y="15-period SMA value", ax=axis)
+
+        else:
+            data.plot(kind="line", x="Date", y="Close Price", ax=axis)
+            data.plot(kind="line", x="Date", y="5-period RSI value", ax=axis,
+                      secondary_y=True)
+
+        canvas = FigureCanvasTkAgg(figure, self.canvas_chart)
+        self.canvas1 = canvas.get_tk_widget()
+        self.canvas1.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+
+
 class SecurityPricesFrame(BaseFrame):
-    def __init__(self, parent, controller):
+    def __init__(self, parent, app):
         super().__init__(parent)
 
         text_styles = {"bg": "#94b4d1",
@@ -391,7 +502,7 @@ class SecurityPricesFrame(BaseFrame):
 
 
 class CurrentPositionsFrame(BaseFrame):
-    def __init__(self, parent, controller):
+    def __init__(self, parent, app):
         super().__init__(parent)
 
         self.Presenter = p.CurrentPositions(view=self)
@@ -433,7 +544,7 @@ class CurrentPositionsFrame(BaseFrame):
 
 
 class PositionRecFrame(BaseFrame):
-    def __init__(self, parent, controller):
+    def __init__(self, parent, app):
         super().__init__(parent)
 
         self.Presenter = p.PositionReconciliation(view=self)
@@ -468,3 +579,171 @@ class PositionRecFrame(BaseFrame):
         for header in self.headers:
             self.tv_positions.heading(header, text=header)
             self.tv_positions.column(header, width=50)
+
+
+class TradeBookingsFrame(BaseFrame):
+    def __init__(self, parent, app):
+        super().__init__(parent)
+
+        text_styles = {"justify": "left",
+                       "bg": "#94b4d1",
+                       "font": ("Verdana", 9)}
+
+        self.Presenter = p.TradeBookings(view=self)
+
+        frame1 = tk.LabelFrame(self, frame_styles, text="Manual Entry")
+        frame1.place(rely=0.05, relx=0.05, relheight=0.20, relwidth=0.55)
+        frame2 = tk.LabelFrame(self, frame_styles, text="Cancel/Uncancel Trade")
+        frame2.place(rely=0.05, relx=0.60, relheight=0.20, relwidth=0.20)
+        frame3 = tk.LabelFrame(self, frame_styles, text="All Transactions")
+        frame3.place(rely=0.25, relx=0.05, relheight=0.65, relwidth=0.9)
+
+        label_name = tk.Label(frame1, text_styles, text="Security Name")
+        label_name.place(rely=0.05, relx=0.05)
+        label_quantity = tk.Label(frame1, text_styles, text="Quantity")
+        label_quantity.place(rely=0.3, relx=0.05)
+        label_price = tk.Label(frame1, text_styles, text="Price")
+        label_price.place(rely=0.55, relx=0.05)
+
+        self.entry_name = ttk.Entry(frame1, width=13, cursor="xterm")
+        self.entry_name.place(rely=0.05, relx=0.25)
+        self.entry_quantity = ttk.Entry(frame1, width=13, cursor="xterm")
+        self.entry_quantity.place(rely=0.3, relx=0.25)
+        self.entry_price = ttk.Entry(frame1, width=13, cursor="xterm")
+        label_id = tk.Label(frame2, text_styles, text="Order ID")
+        self.entry_price.place(rely=0.55, relx=0.25)
+
+        label_id.place(rely=0.05, relx=0.05)
+        self.entry_id = ttk.Entry(frame2, width=7, cursor="xterm")
+        self.entry_id.place(rely=0.05, relx=0.35)
+        self.check_val = tk.IntVar(parent)
+        cancel_btn = tk.Radiobutton(frame2, text="Uncancel", variable=self.check_val, value=0, bg="#94b4d1")
+        cancel_btn.place(rely=0.3, relx=0.35)
+        uncancel_btn = tk.Radiobutton(frame2, text="Cancel", variable=self.check_val, value=1, bg="#94b4d1")
+        uncancel_btn.place(rely=0.5, relx=0.35)
+
+        btn_submit1 = ttk.Button(frame1, text="Insert", command=lambda: self.add_transaction())
+        btn_submit1.place(rely=0.75, relx=0.40)
+        btn_submit2 = ttk.Button(frame2, text="Amend Status", command=lambda: self.change_status())
+        btn_submit2.place(rely=0.70, relx=0.35)
+        btn_refresh = ttk.Button(frame1, text="Refresh", command=lambda: self.refresh_transactions())
+        btn_refresh.place(rely=0.75, relx=0.60)
+
+        self.tv_transactions = ttk.Treeview(frame3)
+        self.tv_transactions.place(relheight=1, relwidth=1)
+        ts_transactions = tk.Scrollbar(frame3)
+        ts_transactions.configure(command=self.tv_transactions.yview)
+        self.tv_transactions.configure(yscrollcommand=ts_transactions.set)
+        ts_transactions.pack(side="right", fill="y")
+        self.headers = ["Order ID", "Name", "Quantity", "Price", "P&L",
+                        "Cancelled"]
+
+        self.load_transaction_headers()
+        self.load_transactions()
+
+    def load_transaction_headers(self):
+        self.tv_transactions['columns'] = self.headers
+        self.tv_transactions["show"] = "headings"
+        for header in self.headers:
+            self.tv_transactions.heading(header, text=header)
+            self.tv_transactions.column(header, width=50)
+
+    def load_transactions(self):
+        self.Presenter.get_transactions()
+
+    def clear_transactions(self):
+        self.tv_transactions.delete(*self.tv_transactions.get_children())
+
+    def display_transactions(self, rows):
+        for row in rows:
+            self.tv_transactions.insert("", "end", values=row)
+
+    def refresh_transactions(self):
+        self.clear_transactions()
+        self.load_transactions()
+
+    def add_transaction(self):
+        name = self.entry_name.get()
+        quantity = self.entry_quantity.get()
+        price = self.entry_price.get()
+        self.Presenter.store_transaction(name=name, quantity=quantity, price=price)
+
+    def change_status(self):
+        toggle = int(self.check_val.get())
+        id = self.entry_id.get()
+        self.Presenter.set_transaction_status(id, toggle)
+
+
+class UsTreasuryConvWindow(tk.Toplevel):
+
+    def __init__(self):
+        super().__init__()
+
+        main_frame = tk.Frame(self)
+        main_frame.pack_propagate(0)
+        main_frame.pack(fill="both", expand="true")
+        main_frame.grid_rowconfigure(0, weight=1)
+        main_frame.grid_columnconfigure(0, weight=1)
+
+        self.geometry("300x200")
+        self.resizable(0, 0)
+
+        self.title("T-Bill Conversion")
+
+        self.Presenter = p.UsTreasuryConvWindow(view=self)
+
+        frame1 = tk.LabelFrame(main_frame, frame_styles, text="Enter the price you want to convert")
+        frame1.pack(expand=True, fill="both")
+
+        label = tk.Label(frame1, text="Enter price here: ", font=("Trebuchet MS", 9), bg="#94b4d1")
+        label.place(rely=0.05, relx=0.05)
+
+        self.entry1 = ttk.Entry(frame1, width=7, cursor="xterm")
+        self.entry1.place(rely=0.05, relx=0.50)
+
+        self.label2 = tk.Label(frame1)
+        self.label2.place(rely=0.4, relx=0.3, height=75, width=150)
+
+        btn_convert = ttk.Button(frame1, text="Convert price", command=lambda: self.initiate_conversion())
+        btn_convert.place(rely=0.20, relx=0.50)
+
+    def initiate_conversion(self):
+        price = self.entry1.get()
+        self.Presenter.conversion(price=price)
+
+    def display_conversion(self, new_price):
+        self.label2["text"] = new_price
+
+
+class AboutPageWindow(tk.Toplevel):
+
+    def __init__(self):
+        super().__init__()
+
+        main_frame = tk.Frame(self)
+        main_frame.pack_propagate(0)
+        main_frame.pack(fill="both", expand="true")
+        main_frame.grid_rowconfigure(0, weight=1)
+        main_frame.grid_columnconfigure(0, weight=1)
+
+        self.geometry("500x500")
+        self.resizable(0, 0)
+
+        self.title("About")
+        bio = """PRMSystem is a portfolio management project created by\n
+        Ramon Williams. PRMSystem utilises the APIs from AlphaVantage, Oanda\n
+        and NewsAPI to create interface that allows the user to read news\n
+        articles, check FX prices/charts, execute trades and trade based\n
+        on two algorithms. This project also allows you to perform\n
+        position reconciliations and store Oanda trades into a database\n
+        where ALL entries are logged.
+
+        As I am learning more about software development this project has\n
+        improved my knowledge on a variety of python libraries, APIs and SQL\n
+        it has also been very helpful on increasing my understanding of\n
+        Functions and OOP."""
+        frame1 = tk.LabelFrame(main_frame, frame_styles, text="Thank you for viewing")
+        frame1.pack(expand=True, fill="both")
+
+        label = tk.Label(frame1, text=bio, font=("Trebuchet MS", 9), bg="#94b4d1")
+        label.pack(expand=True)
