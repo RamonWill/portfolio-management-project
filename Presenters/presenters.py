@@ -147,16 +147,17 @@ class TradeBookings(object):
     def store_transaction(self, name, quantity, price):
         with PRMS_Database() as db:
             check = db.validate_entry(name, quantity, price)
-        if isinstance(check, str):  # if validation Failed
-            print(check)
-            return None
-        else:
-            print(db.add_to_db(name, quantity, price))
+            if isinstance(check, str):  # if validation Failed
+                print(check)
+                return None
+            else:
+                print(db.add_to_db(name, quantity, price))
+                self.View.clear_status_entries()
 
     def set_transaction_status(self, id, toggle):
         with PRMS_Database() as db:
             print(db.cancelled_toggle(id, toggle))
-
+            self.View.clear_status_entries()
 
 class UsTreasuryConvWindow(object):
     def __init__(self, view):

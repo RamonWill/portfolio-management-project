@@ -666,12 +666,23 @@ class TradeBookingsFrame(BaseFrame):
         name = self.entry_name.get()
         quantity = self.entry_quantity.get()
         price = self.entry_price.get()
-        self.Presenter.store_transaction(name=name, quantity=quantity, price=price)
+        self.Presenter.store_transaction(name=name,
+                                         quantity=quantity,
+                                         price=price)
 
     def change_status(self):
         toggle = int(self.check_val.get())
         id = self.entry_id.get()
         self.Presenter.set_transaction_status(id, toggle)
+
+    def clear_status_entries(self):
+        self.entry_id.delete(0, "end")
+
+
+    def clear_transaction_entries(self):
+        self.entry_name.delete(0, "end")
+        self.entry_quantity.delete(0, "end")
+        self.entry_price.delete(0, "end")
 
 
 class UsTreasuryConvWindow(tk.Toplevel):
