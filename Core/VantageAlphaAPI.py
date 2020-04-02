@@ -47,11 +47,9 @@ class AV_FXData(object):
             fx_dataframe = self.Alpha_fx_data()
             ti_dataframe = self.Technical_indicators()
             merged_dataframes = fx_dataframe.merge(ti_dataframe, on="Date")
-
             return merged_dataframes
-
         else:
-            pass
+            raise ValueError("The chosen indicator is not valid")
 
     def Alpha_fx_data(self):
         """Requests price data and returns a dataframe."""
@@ -83,13 +81,10 @@ class AV_FXData(object):
                           "from_symbol": self.ccy_1,
                           "to_symbol": self.ccy_2,
                           "apikey": api_key}
-        else:
-            pass
 
         response = requests.get(url, params=parameters)
         fx_rate_json = response.json()
-
-        fx_rate = fx_rate_json[time_series]
+        fx_rate = fx_rate_json[time_series]  # raise error if this fails
 
         fx_rate_extract = pd.DataFrame.from_dict(fx_rate,
                                                  orient="index",
@@ -104,18 +99,11 @@ class AV_FXData(object):
 
     def Technical_indicators(self):
         """Requests technical indicator data and returns a dataframe."""
-        if self.date_range == "INTRADAY":
-            interval = "5min"
+        intervals = {"INTRADAY": "5min",
+                     "DAILY": "daily",
+                     "WEEKLY": "weekly"}
 
-        elif self.date_range == "DAILY":
-            interval = "daily"
-
-        elif self.date_range == "WEEKLY":
-            interval = "weekly"
-
-        else:
-            pass
-
+        interval = intervals[self.date_range]
         parameters = {"function": self.indicator,
                       "symbol": self.currency_pair, "interval": interval,
                       "time_period": 5, "series_type": "close",
@@ -123,14 +111,13 @@ class AV_FXData(object):
 
         response = requests.get(url, params=parameters)
         ti_json = response.json()
-
-        ti_meta = ti_json["Technical Analysis: {}".format(self.indicator)]
+        ti_meta = ti_json[f"Technical Analysis: {self.indicator}"]
 
         ti_dataframe = pd.DataFrame.from_dict(ti_meta,
                                               orient="index").reset_index()
 
         ti_dataframe[self.indicator] = pd.to_numeric(ti_dataframe[self.indicator])
-        ti_dataframe = ti_dataframe.rename(columns={self.indicator: "5-period {} value".format(self.indicator),
+        ti_dataframe = ti_dataframe.rename(columns={self.indicator: f"5-period {self.indicator} value",
                                                     "index": "Date"})
         #  ":00" is added to all intraday dates to merge with the fx_dataframe
 

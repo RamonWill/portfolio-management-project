@@ -7,17 +7,17 @@ def Decimal_to_treasury(price):
         if ".5" in decimal_part:
             decimal_part = decimal_part.partition(".")[0]
             if float(decimal_part) < 10:
-                return "{}-0{}+".format(integral, decimal_part)
+                conversion = f"{integral}-0{decimal_part}+"
             else:
-                return "{}-{}+".format(integral, decimal_part)
-
+                conversion = f"{integral}-{decimal_part}+"
+            return conversion
         else:
             decimal_part = decimal_part.partition(".")[0]
             if float(decimal_part) < 10:
-                return "{}-0{}".format(integral, decimal_part)
+                conversion = f"{integral}-0{decimal_part}"
             else:
-                return "{}-{}".format(integral, decimal_part)
-
+                conversion = f"{integral}-{decimal_part}"
+            return conversion
 
 def Treasury_to_decimal(price):
     """Converts a 32nds price to a decimal price."""

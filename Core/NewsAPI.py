@@ -9,14 +9,14 @@ api_key = config.news_key
 
 
 def latest_news():
-    """Request bloomberg articles from News API and returns a multidimensional
+    """Request CNBC articles from News API and returns a multidimensional
        array."""
 
     url = "https://newsapi.org/v2/top-headlines?"
-    source = "bloomberg"
+    source = "cnbc"
     params = {"apiKey": api_key,
               "sources": source,
-              "pagesize": 10}
+              "pagesize": 20}
 
     response = requests.get(url, params=params)
     news = response.json()

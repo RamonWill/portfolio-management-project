@@ -32,10 +32,9 @@ class HomePage(object):
     def create_tables(self):
         Tables = namedtuple("Tables", ("account", "prices", "news"))
         account = OandaAPI.Oanda_acc_summary()
-        account_rows = account.to_numpy().tolist()
         price_rows = OandaAPI.Oanda_prices()
         news_rows = latest_news()
-        T = Tables(account_rows, price_rows, news_rows)
+        T = Tables(account, price_rows, news_rows)
         self.View.update_tables(Tables=T)
 
     def create_rec_summary(self):
@@ -50,12 +49,8 @@ class CreateOrders(object):
         self.View = view
 
     def create_positions(self):
-        try:
-            positions = OandaAPI.Open_positions("basic")
-            position_rows = positions.to_numpy().tolist()
-        except AttributeError:
-            return None
-        self.View.update_positions(rows=position_rows)
+        positions = OandaAPI.Open_positions("basic")
+        self.View.update_positions(rows=positions)
 
     def execute_trade(self, units, instrument, acknowledged=False):
         if not acknowledged:
@@ -97,6 +92,7 @@ class AlgoTrading(object):
     #     algo_strategy = self.strategy.get()
     #     self.label_fil["text"] = Algo(ccy1, ccy2).algo_execution(units, algo_strategy)
 
+
 class SecurityPrices(object):
 
     def __init__(self, view):
@@ -121,12 +117,8 @@ class CurrentPositions(object):
         self.View = view
 
     def create_positions(self):
-        try:
-            positions = OandaAPI.Open_positions("advanced")
-            position_rows = positions.to_numpy().tolist()
-        except AttributeError:
-            return None
-        self.View.update_positions(rows=position_rows)
+        positions = OandaAPI.Open_positions("advanced")
+        self.View.update_positions(rows=positions)
 
 
 class PositionReconciliation(object):

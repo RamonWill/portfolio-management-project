@@ -4,14 +4,12 @@ from pathlib import Path
 
 PARENT_PATH = Path(__file__).parent.parent
 
-# r"C:\Users\Owner\Documents\PRMS_API\source.db"
-
 
 class PRMS_Database(object):
     def __init__(self):
 
-        __DB_PATH = str(Path.joinpath(PARENT_PATH, "source.db"))
-        self.conn = sqlite3.connect(__DB_PATH)
+        DB_PATH = str(Path.joinpath(PARENT_PATH, "source.db"))
+        self.conn = sqlite3.connect(DB_PATH)
         self.cur = self.conn.cursor()
 
     def __enter__(self):
@@ -32,16 +30,11 @@ class PRMS_Database(object):
         self.conn.row_factory = sqlite3.Row
 
         self.cur.execute("""SELECT name, displayName
-                     FROM Instruments
-                     ORDER BY displayName;""")
+                            FROM Instruments
+                            ORDER BY displayName;""")
 
         instrument_table = self.cur.fetchall()
-
-        db_names = [row[0] for row in instrument_table]
-        db_display_names = [row[1] for row in instrument_table]
-        instrument_pairs = {name: display_name for name, display_name in
-                            zip(db_names, db_display_names)}
-
+        instrument_pairs = {row[0]: row[1] for row in instrument_table}
         return instrument_pairs
 
     def updates_instruments(self, name, display_name):
@@ -52,7 +45,7 @@ class PRMS_Database(object):
         query = """INSERT INTO Instruments
                    VALUES (:name, :displayName);"""
         self.cur.execute(query, {"name": name, "displayName": display_name})
-        # The above might work. test it out
+
 
     def get_largest_positions(self):
         query = """SELECT name, SUM(quantity*price) as 'MarketVal'
@@ -90,9 +83,9 @@ class PRMS_Database(object):
 
         result = self.cur.rowcount
         if result == 0:
-            return "Order ID does not exist in the database.".format(id)
+            return "Order ID does not exist in the database."
         else:
-            return "Changes have been made to Order ID {}.".format(id)
+            return f"Changes have been made to Order ID {id}."
 
     def add_to_db(self, instrument, units, price, id=None, profit=0):
         if id is None:
@@ -106,9 +99,8 @@ class PRMS_Database(object):
                         "cancelled": 0
                         }
         self.cur.execute("""INSERT INTO All_Transactions
-                     VALUES (:id, :name, :quantity, :price, :pnl, :cancelled)""",
-                  placeholders)
-        return "Order ID {} stored to the database".format(id)
+                            VALUES (:id, :name, :quantity, :price, :pnl, :cancelled)""", placeholders)
+        return f"Order ID {id} stored to the database"
 
     def get_prms_positions(self):
         # This query can be improved. previous query average wasn't weighted.
@@ -144,7 +136,6 @@ class PRMS_Database(object):
 
         return prms_positions
 
-# Login and Register
     def validate_entry(self, name, quantity, price):
 
         instruments = self.get_db_instruments()
@@ -164,6 +155,7 @@ class PRMS_Database(object):
         else:
             return True
 
+# Login and Register
     def Validate_login(self, username, password):
 
         self.cur.execute("""SELECT Username, Password

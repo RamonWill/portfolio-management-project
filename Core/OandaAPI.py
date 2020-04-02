@@ -24,18 +24,19 @@ client = API(access_token=api_key)
 
 
 def Oanda_acc_summary():
-    """Request the account details from oanda and return a dataframe."""
+    """Requests the account details from oanda"""
     account_details = accounts.AccountDetails(accountID)
     client.request(account_details)
 
     account_data = account_details.response
+    nav = account_data["account"]["NAV"]
+    balance = account_data["account"]["balance"]
+    currency = account_data["account"]["currency"]
+    account_details = [["NAV", nav],
+                       ["Balance", balance],
+                       ["Currency", currency]]
 
-    df_account = pd.DataFrame(account_data).loc[["NAV", "balance", "currency"]]
-    df_account = df_account.drop(["lastTransactionID"], axis=1)
-
-    df_account.reset_index(inplace=True)
-
-    return df_account
+    return account_details
 
 
 def get_instruments():
@@ -46,16 +47,8 @@ def get_instruments():
 
     all_instruments = account_instruments["instruments"]
 
-    names = [instrument["name"] for instrument in all_instruments]
-    display_names = [instrument["displayName"] for instrument in all_instruments]
-
-    if len(names) == len(display_names):
-        instrument_pairs = {name: display_name for name, display_name
-                            in zip(names, display_names)}
-    try:
-        return instrument_pairs
-    except NameError:
-        print("Error. Do all instrument names have display names?")
+    instrument_pairs = {i["name"]: i["displayName"] for i in all_instruments}
+    return instrument_pairs
 
 
 def load_instruments():
@@ -64,46 +57,43 @@ def load_instruments():
     they do not already exist in the database.
     """
     all_instruments = get_instruments()
-
+    count = 0
     with PRMS_Database() as db:
         db_instruments = db.get_db_instruments()
-        db_names = db_instruments.keys()
-
-        for name, display_name in all_instruments.items():
-            if name in db_names:
-                pass
-            else:
-                print(name, display_name)
-                db.load_instruments(name, display_name)
-    print("Complete")
+        db_names = set(db_instruments.keys())
+        print(db_names)
+    for name, display_name in all_instruments.items():
+        if name not in db_names:
+            db.updates_instruments(name, display_name)
+            print(name, display_name)
+            count += 1
+    print(f"Completed. {count} item(s) added to the database.")
 
 
 def Oanda_prices():
-    """Request instrument prices from oanda and return a dataframe."""
+    """Request instrument prices from oanda."""
 
     with PRMS_Database() as db:
         instrument_names = db.get_db_instruments()
 
     instrument_keys = list(instrument_names.keys())
-    instrument_keys_sorted = ",".join(instrument_keys)
+    instrument_keys_sorted = ",".join(instrument_keys)  # A sorted string
 
     params_prices = {"instruments": instrument_keys_sorted}
     pricing_details = pricing.PricingInfo(accountID=accountID,
                                           params=params_prices)
     client.request(pricing_details)
-
     pricing_details = pricing_details.response
-
     pricing_details = pricing_details["prices"]
 
     list_prices = []
 
     for header in pricing_details:
         instrument = header["instrument"]
-        instrument_name = instrument_names.get(instrument)
+        name = instrument_names.get(instrument)
         bid_price = header["bids"][0]["price"]
         ask_price = header["asks"][0]["price"]
-        list_prices.append([instrument_name,
+        list_prices.append([name,
                             bid_price,
                             ask_price])
 
@@ -131,8 +121,8 @@ def Market_order(units, instrument):
     try:
         oanda_instrument = next(k for k, v in instrument_names.items() if v == instrument)
     except StopIteration:
-        print("{} is not a tradeable instrument".format(instrument))
-        return "{}".format(instrument)
+        print(f"'{instrument}' is not a tradeable instrument")
+        return f"{instrument}"
 
     datax = {
       "order": {
@@ -150,6 +140,45 @@ def Market_order(units, instrument):
     return order_details
 
 
+def fil_success(fil):
+    fil_type = fil["orderFillTransaction"]["type"]
+    time = fil["orderFillTransaction"]["time"].replace("T", " ")
+    transid = fil["orderFillTransaction"]["requestID"]
+    account = fil["orderFillTransaction"]["accountID"]
+    id = fil["orderFillTransaction"]["orderID"]
+
+    instrument = fil["orderFillTransaction"]["instrument"]
+    units = fil["orderFillTransaction"]["units"]
+    price = fil["orderFillTransaction"]["price"]
+    profit = fil["orderFillTransaction"]["pl"]
+    details = (fil_type, time, transid, account,
+               id, instrument, units, price, profit)
+
+    fil_information = (" {}\n Execution Time: {}\n Request ID: {}\n "
+    "Account ID: {}\n Order ID: {}\n\n Instrument: {}\n Units: {}\n "
+    "Price: {}\n Gain/Loss: {}").format(*details)
+
+    return fil_information
+
+
+def fil_cancellation(fil):
+    fil_type = fil["orderCancelTransaction"]["type"]
+    reason = fil["orderCancelTransaction"]["reason"]
+    account = fil["orderCancelTransaction"]["accountID"]
+    id = fil["orderCancelTransaction"]["orderID"]
+
+    time = fil["orderCancelTransaction"]["time"].replace("T", " ")
+    instrument = fil["orderCreateTransaction"]["instrument"]
+    units = fil["orderCreateTransaction"]["units"]
+    details = (fil_type, reason, account, id,
+               time, instrument, units)
+
+    fil_information = (" {}\n Order Cancel Reason: {}\n "
+    "Account ID: {}\n Order ID: {}\n\n Cancellation Time: {}\n "
+    "Instrument: {}\n Units: {}\n").format(*details)
+    return fil_information
+
+
 def Execution_details(order_details):
     """Converts a JSON trade confirmation into a readable string
 
@@ -162,40 +191,13 @@ def Execution_details(order_details):
 
     fil = order_details
     if isinstance(fil, str):
-        return "{} is not a tradeable instrument".format(fil)
-    try:
-        fil_type = fil["orderFillTransaction"]["type"]
-        time = fil["orderFillTransaction"]["time"].replace("T", " ")
-        transid = fil["orderFillTransaction"]["requestID"]
-        account = fil["orderFillTransaction"]["accountID"]
-        id = fil["orderFillTransaction"]["orderID"]
+        return f"{fil} is not a tradeable instrument"
 
-        instrument = fil["orderFillTransaction"]["instrument"]
-        units = fil["orderFillTransaction"]["units"]
-        price = fil["orderFillTransaction"]["price"]
-        profit = fil["orderFillTransaction"]["pl"]
-        details = (fil_type, time, transid, account,
-                   id, instrument, units, price, profit)
+    if "orderFillTransaction" in fil:
+        fil_information = fil_success(fil)
+    else:
+        fil_information = fil_cancellation(fil)
 
-        fil_information = (" {}\n Execution Time: {}\n Request ID: {}\n "
-        "Account ID: {}\n Order ID: {}\n\n Instrument: {}\n Units: {}\n "
-        "Price: {}\n Gain/Loss: {}").format(*details)
-
-    except KeyError:
-        fil_type = fil["orderCancelTransaction"]["type"]
-        reason = fil["orderCancelTransaction"]["reason"]
-        account = fil["orderCancelTransaction"]["accountID"]
-        id = fil["orderCancelTransaction"]["orderID"]
-
-        time = fil["orderCancelTransaction"]["time"].replace("T", " ")
-        instrument = fil["orderCreateTransaction"]["instrument"]
-        units = fil["orderCreateTransaction"]["units"]
-        details = (fil_type, reason, account, id,
-                   time, instrument, units)
-
-        fil_information = (" {}\n Order Cancel Reason: {}\n "
-        "Account ID: {}\n Order ID: {}\n\n Cancellation Time: {}\n "
-        "Instrument: {}\n Units: {}\n").format(*details)
     return fil_information
 
 
@@ -207,10 +209,8 @@ def trade_to_db(order_details):
     """
 
     fil = order_details
-    if isinstance(fil, str):
-        pass
-    else:
-        try:
+    if not isinstance(fil, str):
+        if "orderFillTransaction" in fil:
             id = fil["orderFillTransaction"]["orderID"]
             instrument = fil["orderFillTransaction"]["instrument"]
             units = fil["orderFillTransaction"]["units"]
@@ -223,74 +223,65 @@ def trade_to_db(order_details):
                 message = db.add_to_db(instrument, units, price, id, profit)
                 return message
 
-        except KeyError:
-            # I should return this instead
-            print("""The transaction was cancelled.\n
-                     Therefore nothing was saved to the database.""")
+        else:
+            message = "The transaction was cancelled.\n"
+            return message
+    else:
+        return None
 
 
 def Open_positions(detail="basic"):
     """Request the open positions on the oanda account
 
     Parameters:
-    detail (str): a basic dataframe or a detailed dataframe.
+    detail (str): a basic matrix or the full matrix.
 
     Returns:
-    dataframe: a dataframe with 2 columns or a dataframe with all columns.
+    dataframe: a matrix with 2 columns or a matrix withall columns.
     """
 
     current_positions = positions.OpenPositions(accountID=accountID)
     client.request(current_positions)
     position_info = current_positions.response
     position_details = position_info["positions"]
-    list_positions = []
+
     with PRMS_Database() as db:
         instrument_names = db.get_db_instruments()
 
-
+    list_positions = []
     for header in position_details:
         instrument = header["instrument"]
         instrument_name = instrument_names.get(instrument)
         if int(header["short"]["units"]) < 0:
 
-            short_avg_price = header["short"]["averagePrice"]
-            short_units = header["short"]["units"]
-            short_pnl = header["short"]["pl"]
-            short_unrel_pnl = header["short"]["unrealizedPL"]
+            avg_price = header["short"]["averagePrice"]
+            units = header["short"]["units"]
+            pnl = header["short"]["pl"]
+            unrel_pnl = header["short"]["unrealizedPL"]
 
-            list_positions.append({"Instrument": instrument_name,
-                                   "Units": short_units,
-                                   "Average Price": short_avg_price,
-                                   "Unrealised P&L": short_unrel_pnl,
-                                   "P&L": short_pnl})
+            list_positions.append([instrument_name, units, avg_price,
+                                   unrel_pnl, pnl])
 
         elif int(header["long"]["units"]) > 0:
 
-            long_avg_price = header["long"]["averagePrice"]
-            long_units = header["long"]["units"]
-            long_pnl = header["long"]["pl"]
-            long_unrel_pnl = header["long"]["unrealizedPL"]
+            avg_price = header["long"]["averagePrice"]
+            units = header["long"]["units"]
+            pnl = header["long"]["pl"]
+            unrel_pnl = header["long"]["unrealizedPL"]
 
-            list_positions.append({"Instrument": instrument_name,
-                                   "Units": long_units,
-                                   "Average Price": long_avg_price,
-                                   "Unrealised P&L": long_unrel_pnl,
-                                   "P&L": long_pnl})
+            list_positions.append([instrument_name, units, avg_price,
+                                   unrel_pnl, pnl])
 
-        else:
-            pass
+    if len(list_positions) == 0:
+        print("There are no positions")
+        return None
 
-    positions_dataframe = pd.DataFrame(list_positions)
-    try:
-        if detail == "basic":
-            orders_dataframe = positions_dataframe[["Instrument", "Units"]]
-            return orders_dataframe
-        elif detail == "advanced":
-            return positions_dataframe
-        else:
-            pass
-    except KeyError:
-        print("There is a KeyError. Are the positions empty?")
+    if detail == "basic":
+        return [row[0:2] for row in list_positions]  # instrument name, units
+    elif detail == "advanced":
+        return list_positions
+    else:
+        raise TypeError("detail should be 'basic' or 'advanced'")
 
 
 class Reconciliation(object):
@@ -317,7 +308,7 @@ class Reconciliation(object):
                 commentary.append("OK")
             elif position_diff == 0 and price_diff != 0:
                 commentary.append("Price Break")
-            elif position_diff !=0 and price_diff == 0:
+            elif position_diff != 0 and price_diff == 0:
                 commentary.append("Position Break")
             else:
                 commentary.append("Position and Price Break")
@@ -334,15 +325,17 @@ class Reconciliation(object):
         if total_records == matches:
             return "There are no position breaks"
         else:
-            return "{} out of {}\npositions have breaks".format(breaks,
-                                                                total_records)
+            return f"{breaks} out of {total_records}\npositions have breaks"
 
     def populate_tables(self):
         self.oanda_pos = self.get_oanda_positions()
         self.prms_pos = self.get_prms_positions()
 
     def get_oanda_positions(self):
-        pos = Open_positions("advanced")
+        data = Open_positions("advanced")
+        headers = ["Instrument", "Units", "Average Price", "Unrealised P&L",
+                   "P&L"]
+        pos = pd.DataFrame.from_records(data, columns=headers)
         pos["Average Price"] = pos["Average Price"].astype(float)
         pos["Units"] = pos["Units"].astype(float)
         return pos.rename(columns={"Average Price": "Avg Price"})
