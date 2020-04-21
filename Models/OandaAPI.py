@@ -12,8 +12,8 @@ try:
     from config import Configurations
     from DatabaseConnections import PRMS_Database
 except ImportError:
-    from Core.config import Configurations
-    from Core.DatabaseConnections import PRMS_Database
+    from Models.config import Configurations
+    from Models.DatabaseConnections import PRMS_Database
 
 
 api_key = Configurations.OANDA_KEY

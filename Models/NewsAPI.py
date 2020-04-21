@@ -3,7 +3,7 @@ import requests
 try:
     from config import Configurations
 except ImportError:
-    from Core.config import Configurations
+    from Models.config import Configurations
 
 api_key = Configurations.NEWS_KEY
 

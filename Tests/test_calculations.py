@@ -5,7 +5,7 @@ from pathlib import Path
 PARENT_PATH = Path(__file__).parent.parent
 sys.path.insert(0, str(PARENT_PATH))
 
-from Core.Calculations import Convertprice
+from Models.Calculations import Convertprice
 
 
 class Test_Calculations(unittest.TestCase):
