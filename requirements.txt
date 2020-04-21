@@ -1,8 +1,6 @@
 alpha-vantage
 matplotlib
 numpy
-oabdapyV20
+oandapyV20
 pandas
 requests
-sqlite3
-webbrowser
