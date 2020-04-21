@@ -62,11 +62,11 @@ def load_instruments():
         db_instruments = db.get_db_instruments()
         db_names = set(db_instruments.keys())
         print(db_names)
-    for name, display_name in all_instruments.items():
-        if name not in db_names:
-            db.updates_instruments(name, display_name)
-            print(name, display_name)
-            count += 1
+        for name, display_name in all_instruments.items():
+            if name not in db_names:
+                db.updates_instruments(name, display_name)
+                print(name, display_name)
+                count += 1
     print(f"Completed. {count} item(s) added to the database.")
 
 
@@ -295,6 +295,8 @@ class Reconciliation(object):
 
     def generate_rec(self):
         self.populate_tables()
+        if self.oanda_pos is None:
+            return None
 
         rec = self.oanda_pos.merge(self.prms_pos, on="Instrument", how="outer")
         rec = rec[["Instrument", "Units",
@@ -322,6 +324,8 @@ class Reconciliation(object):
 
     def num_matches(self):
         rec = self.generate_rec()
+        if rec is None:
+            return "There are no positions"
         total_records = len(rec)
         matches = len(rec.query("Commentary == 'OK'"))
         breaks = total_records - matches
@@ -337,8 +341,12 @@ class Reconciliation(object):
 
     def get_oanda_positions(self):
         data = live_positions("advanced")
+        if not data:
+            return None
+        
         headers = ["Instrument", "Units", "Average Price", "Unrealised P&L",
                    "P&L"]
+        
         pos = pd.DataFrame.from_records(data, columns=headers)
         pos["Average Price"] = pos["Average Price"].astype(float)
         pos["Units"] = pos["Units"].astype(float)

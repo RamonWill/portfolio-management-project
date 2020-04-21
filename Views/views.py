@@ -267,8 +267,9 @@ class CreateOrdersFrame(BaseFrame):
         self.tv_positions.delete(*self.tv_positions.get_children())
 
     def update_positions(self, rows):
-        for row in rows:
-            self.tv_positions.insert("", "end", values=row)
+        if rows:
+            for row in rows:
+                self.tv_positions.insert("", "end", values=row)
 
     def refresh_positions(self):
         self.clear_positions()
@@ -570,8 +571,9 @@ class CurrentPositionsFrame(BaseFrame):
         self.tv_positions.delete(*self.tv_positions.get_children())
 
     def update_positions(self, rows):
-        for row in rows:
-            self.tv_positions.insert("", "end", values=row)
+        if rows:
+            for row in rows:
+                self.tv_positions.insert("", "end", values=row)
 
     def refresh_positions(self):
         self.clear_positions()
