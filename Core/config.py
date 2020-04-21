@@ -1,12 +1,11 @@
-"""API Keys"""
-# enter your API keys in the empty strings below
+class Configurations(object):
+    # Database
+    DATABASE_NAME = ""  # Default value "source.db"
 
-oanda_key = ""
+    # Oanda Account
+    OANDA_ACCOUNT = ""
 
-av_key = ""
-
-news_key = ""
-
-
-"""Accounts"""
-oanda_account = ""
+    # API_Keys
+    OANDA_KEY = ""
+    AV_KEY = ""
+    NEWS_KEY = ""
