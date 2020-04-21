@@ -1,11 +1,11 @@
 import requests
 
 try:
-    import config
+    from config import Configurations
 except ImportError:
-    import Core.config as config
+    from Core.config import Configurations
 
-api_key = config.news_key
+api_key = Configurations.NEWS_KEY
 
 
 def latest_news():

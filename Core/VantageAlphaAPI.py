@@ -4,11 +4,11 @@ from datetime import datetime, timedelta
 
 
 try:
-    import config
+    from config import Configurations
 except ImportError:
-    import Core.config as config
+    from Core.config import Configurations
 
-api_key = config.av_key
+api_key = Configurations.AV_KEY
 url = "https://www.alphavantage.co/query?"
 
 
@@ -31,7 +31,7 @@ class AV_FXData(object):
         self.indicator = indicator
         self.currency_pair = ccy_1 + ccy_2
 
-    def Fx_chart_gui(self):
+    def fx_chart_gui(self):
         """Requests technical indicator AND price data and returns
            a dataframe that can be plotted in the GUI.
         """
@@ -40,64 +40,49 @@ class AV_FXData(object):
         self.date_range = self.date_range.upper()
 
         if self.indicator == "No Indicator":
-            fx_dataframe = self.Alpha_fx_data()
+            fx_dataframe = self.alpha_fx_data()
             return fx_dataframe
 
         elif self.indicator.upper() in ti_list:
-            fx_dataframe = self.Alpha_fx_data()
-            ti_dataframe = self.Technical_indicators()
+            fx_dataframe = self.alpha_fx_data()
+            ti_dataframe = self.technical_indicators()
             merged_dataframes = fx_dataframe.merge(ti_dataframe, on="Date")
             return merged_dataframes
         else:
             raise ValueError("The chosen indicator is not valid")
 
-    def Alpha_fx_data(self):
+    def alpha_fx_data(self):
         """Requests price data and returns a dataframe."""
+        date_series = {"INTRADAY": "Time Series FX (5min)",
+                       "DAILY": "Time Series FX (Daily)",
+                       "WEEKLY": "Time Series FX (Weekly)"}
+
+        function = f"FX_{self.date_range}"
+        time_series = date_series[self.date_range]
+
+        parameters = {"function": function,
+                      "from_symbol": self.ccy_1,
+                      "to_symbol": self.ccy_2,
+                      "apikey": api_key}
 
         if self.date_range == "INTRADAY":
-            function = "FX_INTRADAY"
-            interval = "5min"
-            time_series = "Time Series FX (5min)"
-            parameters = {"function": function,
-                          "from_symbol": self.ccy_1,
-                          "to_symbol": self.ccy_2,
-                          "apikey": api_key,
-                          "interval": interval}
-
-        elif self.date_range == "DAILY":
-            function = "FX_DAILY"
-            interval = "daily"
-            time_series = "Time Series FX (Daily)"
-            parameters = {"function": function,
-                          "from_symbol": self.ccy_1,
-                          "to_symbol": self.ccy_2,
-                          "apikey": api_key}
-
-        elif self.date_range == "WEEKLY":
-            function = "FX_WEEKLY"
-            interval = "weekly"
-            time_series = "Time Series FX (Weekly)"
-            parameters = {"function": function,
-                          "from_symbol": self.ccy_1,
-                          "to_symbol": self.ccy_2,
-                          "apikey": api_key}
+            parameters["interval"] = "5min"
 
         response = requests.get(url, params=parameters)
         fx_rate_json = response.json()
         fx_rate = fx_rate_json[time_series]  # raise error if this fails
 
-        fx_rate_extract = pd.DataFrame.from_dict(fx_rate,
-                                                 orient="index",
-                                                 columns=["4. close"]).reset_index()
+        fx_extract = pd.DataFrame.from_dict(fx_rate,
+                                            orient="index",
+                                            columns=["4. close"]).reset_index()
+        renamed_headers = {"index": "Date", "4. close": "Close Price"}
+        fx_extract = fx_extract.rename(columns=renamed_headers)
 
-        fx_rate_extract = fx_rate_extract.rename(columns={"index": "Date",
-                                                          "4. close": "Close Price"})
+        fx_extract["Close Price"] = pd.to_numeric(fx_extract["Close Price"])
 
-        fx_rate_extract["Close Price"] = pd.to_numeric(fx_rate_extract["Close Price"])
+        return fx_extract
 
-        return fx_rate_extract
-
-    def Technical_indicators(self):
+    def technical_indicators(self):
         """Requests technical indicator data and returns a dataframe."""
         intervals = {"INTRADAY": "5min",
                      "DAILY": "daily",
@@ -106,6 +91,7 @@ class AV_FXData(object):
         interval = intervals[self.date_range]
         parameters = {"function": self.indicator,
                       "symbol": self.currency_pair, "interval": interval,
+                      "time_period": 5, "series_type": "close",
                       "time_period": 5, "series_type": "close",
                       "apikey": api_key}
 
@@ -117,13 +103,14 @@ class AV_FXData(object):
                                               orient="index").reset_index()
 
         ti_dataframe[self.indicator] = pd.to_numeric(ti_dataframe[self.indicator])
-        ti_dataframe = ti_dataframe.rename(columns={self.indicator: f"5-period {self.indicator} value",
-                                                    "index": "Date"})
-        #  ":00" is added to all intraday dates to merge with the fx_dataframe
+
+        period = f"5-period {self.indicator} value"
+        renamed_headers = {self.indicator: period, "index": "Date"}
+        ti_dataframe = ti_dataframe.rename(columns=renamed_headers)
 
         if interval == "5min":
-            ti_dataframe["Date"] = [est_to_utc(date+":00")
-                                    for date in ti_dataframe["Date"]]
+            new_dates = [est_to_utc(d+":00") for d in ti_dataframe["Date"]]
+            ti_dataframe["Date"] = new_dates
 
         return ti_dataframe
 

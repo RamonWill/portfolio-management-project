@@ -4,23 +4,23 @@ from oandapyV20 import API
 
 
 try:
-    import config
+    from config import Configurations
 except ImportError:
-    import Core.config as config
-    from Core.OandaAPI import Market_order, Execution_details
+    from Core.config import Configurations
+    from Core.OandaAPI import market_order, execution_details
     from Core.VantageAlphaAPI import est_to_utc
 # https://www.investopedia.com/articles/active-trading/101014/basics-algorithmic-trading-concepts-and-examples.asp
 
 # Golden Cross strategy - based on 15 and 5 period moving average
 # RSI strategy - price below 30? Go long. Above 70? Go short.
 
-api_key_oanda = config.oanda_key
-accountID_oanda = config.oanda_account
+api_key_oanda = Configurations.OANDA_KEY
+accountID_oanda = Configurations.OANDA_ACCOUNT
 url_oanda = "https://api-fxpractice.oanda.com"
 
 client_oanda = API(access_token=api_key_oanda)
 
-api_key_av = config.av_key
+api_key_av = Configurations.AV_KEY
 url_av = "https://www.alphavantage.co/query?"
 
 
@@ -188,13 +188,13 @@ class Algo(object):
             direction_current = float(sma_short_current) - float(sma_long_current)
 
             if direction_current > 0 and direction_prior < 0:  # Golden Cross
-                execution = Market_order(units, oanda_instrument)
-                return "Buy Order Sent\n {}".format(Execution_details(execution))
+                execution = market_order(units, oanda_instrument)
+                return "Buy Order Sent\n {}".format(execution_details(execution))
 
             elif direction_current < 0 and direction_prior > 0:  # Death Cross
                 units = units * -1
-                execution = Market_order(units, oanda_instrument)
-                return "Sell Order Sent\n {}".format(Execution_details(execution))
+                execution = market_order(units, oanda_instrument)
+                return "Sell Order Sent\n {}".format(execution_details(execution))
 
             else:
                 current_price = self.Algo_fx_data("algo").reset_index(drop=True)
@@ -207,13 +207,13 @@ class Algo(object):
             rsi_short_term = rsi_short_term.at[0, "{}".format(indicator)]
 
             if rsi_short_term <= 30:
-                execution = Market_order(units, oanda_instrument)
-                return "Buy Order Sent\n {}".format(Execution_details(execution))
+                execution = market_order(units, oanda_instrument)
+                return "Buy Order Sent\n {}".format(execution_details(execution))
 
             elif rsi_short_term >= 70:
                 units = units * - 1
-                execution = Market_order(units, oanda_instrument)
-                return "Sell Order Sent\n {}".format(Execution_details(execution))
+                execution = market_order(units, oanda_instrument)
+                return "Sell Order Sent\n {}".format(execution_details(execution))
 
             else:
                 current_price = self.Algo_fx_data("algo").at[0, "Close Price"]

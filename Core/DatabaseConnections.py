@@ -2,13 +2,19 @@ import sqlite3
 import pandas as pd
 from pathlib import Path
 
+try:
+    from config import Configurations
+except ImportError:
+    from Core.config import Configurations
+
+DATABASE_NAME = Configurations.DATABASE_NAME
 PARENT_PATH = Path(__file__).parent.parent
 
 
 class PRMS_Database(object):
     def __init__(self):
 
-        DB_PATH = str(Path.joinpath(PARENT_PATH, "source.db"))
+        DB_PATH = str(Path.joinpath(PARENT_PATH, DATABASE_NAME))
         self.conn = sqlite3.connect(DB_PATH)
         self.cur = self.conn.cursor()
 
@@ -146,12 +152,12 @@ class PRMS_Database(object):
             check_price = (float(price) >= 0)
         except (StopIteration, ValueError) as e:
             if (isinstance(e, StopIteration)):
-                return "The name you have entered is not a tradeable instrument."
+                return "Instrument not recognised."
             elif(isinstance(e, ValueError)):
-                return "The Quantity and Price must be valid numbers."
+                return "The quantity and price must be valid numbers."
 
         if not check_price:
-            return "The Price cannot be a negative number"
+            return "The price cannot be a negative number."
         else:
             return True
 

@@ -4,12 +4,14 @@ from collections import namedtuple
 
 PARENT_PATH = Path(__file__).parent.parent
 sys.path.insert(0, str(PARENT_PATH))
+
 import Core.OandaAPI as OandaAPI
 from Core.NewsAPI import latest_news
 from Core.DatabaseConnections import PRMS_Database
 from Core.VantageAlphaAPI import AV_FXData
 from Core.AlgoTradingAPI import Algo
 from Core.Calculations import Convertprice
+
 
 class HomePage(object):
 
@@ -31,8 +33,8 @@ class HomePage(object):
 
     def create_tables(self):
         Tables = namedtuple("Tables", ("account", "prices", "news"))
-        account = OandaAPI.Oanda_acc_summary()
-        price_rows = OandaAPI.Oanda_prices()
+        account = OandaAPI.oanda_acc_summary()
+        price_rows = OandaAPI.oanda_prices()
         news_rows = latest_news()
         T = Tables(account, price_rows, news_rows)
         self.View.update_tables(Tables=T)
@@ -49,16 +51,17 @@ class CreateOrders(object):
         self.View = view
 
     def create_positions(self):
-        positions = OandaAPI.Open_positions("basic")
+        positions = OandaAPI.live_positions("basic")
         self.View.update_positions(rows=positions)
 
     def execute_trade(self, units, instrument, acknowledged=False):
         if not acknowledged:
-            info = "The trade is not acknowledged.\nYour order has not been sent."
+            info = ("The trade is not acknowledged.\n"
+                    "Your order has not been sent.")
         else:
-            order_details = OandaAPI.Market_order(units, instrument)
+            order_details = OandaAPI.market_order(units, instrument)
             OandaAPI.trade_to_db(order_details)
-            info = OandaAPI.Execution_details(order_details)
+            info = OandaAPI.execution_details(order_details)
 
         self.View.clear_entries()
         self.View.display_order_info(text=info)
@@ -75,7 +78,7 @@ class AlgoTrading(object):
         Chart_data = Chart.live_algo_chart(strategy)
         self.View.draw_algo_chart(data=Chart_data, strategy=strategy)
 
-    ## PAUSED to be reviewed
+    # PAUSED to be reviewed
     # def run_algorithm(self, timer, units, currency1, currency2, strategy):
     #     while timer > self.counter:
     #         print(f"order initiated, {self.counter} interval elapsed")
@@ -100,7 +103,7 @@ class SecurityPrices(object):
 
     def create_chart(self, period, indicator, currency1, currency2):
         Chart = AV_FXData(period, currency1, currency2, indicator)
-        Chart_data = Chart.Fx_chart_gui()
+        Chart_data = Chart.fx_chart_gui()
 
         Chart_prices = Chart_data.tail(4)  # gets the 4 most recent prices
         Chart_prices = Chart_prices[["Date", "Close Price"]]
@@ -117,7 +120,7 @@ class CurrentPositions(object):
         self.View = view
 
     def create_positions(self):
-        positions = OandaAPI.Open_positions("advanced")
+        positions = OandaAPI.live_positions("advanced")
         self.View.update_positions(rows=positions)
 
 
@@ -158,6 +161,7 @@ class TradeBookings(object):
         with PRMS_Database() as db:
             print(db.cancelled_toggle(id, toggle))
             self.View.clear_status_entries()
+
 
 class UsTreasuryConvWindow(object):
     def __init__(self, view):

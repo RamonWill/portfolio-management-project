@@ -19,6 +19,7 @@ def Decimal_to_treasury(price):
                 conversion = f"{integral}-{decimal_part}"
             return conversion
 
+
 def Treasury_to_decimal(price):
     """Converts a 32nds price to a decimal price."""
 

@@ -1,20 +1,22 @@
 import tkinter as tk
 import Core.OandaAPI as OandaAPI
-from Setup.setup import Setup_database_tables
+from Setup.setup import Setup_database_tables, check_configurations
 import os
 from Views import views, navigation, auth
+from Core.config import Configurations
 
-"""This App project will create a python GUI interface that will perform
-various portfolio reconciliation tasks and other management data handling"""
-# PRMS = Portfolio Reconciliation and Management System
+# Portfolio Reconciliation and Management System (PRMS)
 
+DATABASE_NAME = Configurations.DATABASE_NAME
 # SETUP #
-if not os.path.exists("source.db"):
+check_configurations()
+
+if not os.path.exists(DATABASE_NAME):
     current_dir = os.getcwd()
-    db_path = current_dir + r"\source.db"  # creates the database
-    print(Setup_database_tables(db_path))
+    db_path = current_dir + r"\{}".format(DATABASE_NAME)  # create database
+    Setup_database_tables(db_path)
     OandaAPI.load_instruments()  # loads the security prices to the database
-# #
+###
 
 
 class Application(tk.Tk):
@@ -50,7 +52,7 @@ class Application(tk.Tk):
         frame = self.frames[name]
         frame.tkraise()
 
-    def Get_treasurypage(self):
+    def show_converter(self):
         views.UsTreasuryConvWindow()
 
     def update_instrument_db(self):

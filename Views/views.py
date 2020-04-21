@@ -31,28 +31,37 @@ class HomePageFrame(BaseFrame):
 
         self.Presenter = p.HomePage(view=self)
 
-        frame_account = tk.LabelFrame(self, frame_styles, text="Account Details")
+        frame_account = tk.LabelFrame(self, frame_styles,
+                                      text="Account Details")
         frame_account.place(rely=0.05, relx=0.02, height=120, width=300)
 
-        frame_prices = tk.LabelFrame(self, frame_styles, text="Tradable Securities")
+        frame_prices = tk.LabelFrame(self, frame_styles,
+                                     text="Tradable Securities")
         frame_prices.place(rely=0.30, relx=0.02, height=375, width=400)
 
-        frame_news = tk.LabelFrame(self, frame_styles, text="Latest News Headlines")
+        frame_news = tk.LabelFrame(self, frame_styles,
+                                   text="Latest News Headlines")
         frame_news.place(rely=0.05, relx=0.45, height=280, width=550)
 
-        frame_rec = tk.LabelFrame(self, frame_styles, text="Reconciliations at a Glance")
+        frame_rec = tk.LabelFrame(self, frame_styles,
+                                  text="Reconciliations at a Glance")
         frame_rec.place(rely=0.55, relx=0.80, height=222, width=190)
 
-        frame_chart = tk.LabelFrame(self, frame_styles, text="Positions at a Glance")
+        frame_chart = tk.LabelFrame(self, frame_styles,
+                                    text="Positions at a Glance")
         frame_chart.place(rely=0.55, relx=0.45, height=222, width=350)
 
-        refresh_btn = ttk.Button(self, text="Refresh data", command=lambda: self.refresh_all())
+        refresh_btn = ttk.Button(self, text="Refresh data",
+                                 command=lambda: self.refresh_all())
         refresh_btn.place(rely=0.94, relx=0.9)
 
-        self.label_rec_info = tk.Label(frame_rec, justify="left", bg="#D5D5D5", relief="ridge", bd=2, font=("Verdana", 10))
+        self.label_rec_info = tk.Label(frame_rec, justify="left",
+                                       bg="#D5D5D5", relief="ridge",
+                                       bd=2, font=("Verdana", 10))
         self.label_rec_info.pack(expand=True, fill="both")
 
-        self.pie_chart = tk.Canvas(frame_chart, bg="#D5D5D5", relief="solid", bd=1)
+        self.pie_chart = tk.Canvas(frame_chart, bg="#D5D5D5",
+                                   relief="solid", bd=1)
         self.pie_chart.pack()
 
         self.pie_canvas = None
@@ -112,7 +121,7 @@ class HomePageFrame(BaseFrame):
         self.Presenter.create_tables()
 
     def clear_tables(self):
-        self.tv_account.delete(*self.tv_account.get_children())  # *=splat operator
+        self.tv_account.delete(*self.tv_account.get_children())
         self.tv_prices.delete(*self.tv_prices.get_children())
         self.tv_news.delete(*self.tv_news.get_children())
 
@@ -161,7 +170,10 @@ class HomePageFrame(BaseFrame):
         ax_pie.add_artist(centre_circle)
         ax_pie.axis("equal")
         ax_pie.set_title("Largest Positions")
-        pie_legend = ax_pie.legend(names, loc='upper left', bbox_to_anchor=(0.74, 0.35), fontsize=6)
+        pie_legend = ax_pie.legend(names,
+                                   loc='upper left',
+                                   bbox_to_anchor=(0.74, 0.35),
+                                   fontsize=6)
         pie_frame = pie_legend.get_frame()
         pie_frame.set_facecolor("#babebf")
         pie_frame.set_edgecolor("#000000")
@@ -188,7 +200,8 @@ class CreateOrdersFrame(BaseFrame):
         back_frame = tk.Frame(self, bg="#94b4d1", relief="groove", bd=3)
         back_frame.place(rely=0.05, relx=0.05, relheight=0.85, relwidth=0.9)
 
-        frame_order = tk.LabelFrame(back_frame, frame_styles, text="Create an Order")
+        frame_order = tk.LabelFrame(back_frame, frame_styles,
+                                    text="Create an Order")
         frame_order.place(rely=0.03, relx=0.02, height=150, width=300)
 
         label_order_1 = tk.Label(frame_order, text_styles, text="Units")
@@ -200,29 +213,37 @@ class CreateOrdersFrame(BaseFrame):
         label_order_3 = tk.Label(frame_order, text_styles, text="Acknowledge")
         label_order_3.place(relx=0.20, rely=0.5)
 
-        frame_positions = tk.LabelFrame(back_frame, frame_styles, text="Your Current Positions")
+        frame_positions = tk.LabelFrame(back_frame, frame_styles,
+                                        text="Your Current Positions")
         frame_positions.place(rely=0.40, relx=0.02, height=300, width=300)
 
-        frame_details = tk.LabelFrame(back_frame, frame_styles, text="Execution Details")
+        frame_details = tk.LabelFrame(back_frame, frame_styles,
+                                      text="Execution Details")
         frame_details.place(rely=0.03, relx=0.5, height=486, width=440)
 
-        self.label_details = tk.Label(frame_details, justify="left", bg="#D5D5D5", relief="ridge", bd=2, font=("Verdana", 10))
+        self.label_details = tk.Label(frame_details, justify="left",
+                                      bg="#D5D5D5", relief="ridge",
+                                      bd=2, font=("Verdana", 10))
         self.label_details.pack(expand=True, fill="both")
 
         self.entry_units = ttk.Entry(frame_order, width=20, cursor="xterm")
         self.entry_units.place(relx=0.5, rely=0.1)
 
-        self.entry_instruments = ttk.Entry(frame_order, width=20,  cursor="xterm")
+        self.entry_instruments = ttk.Entry(frame_order, width=20,
+                                           cursor="xterm")
         self.entry_instruments.place(relx=0.5, rely=0.3)
 
         self.check_val = tk.BooleanVar(parent)
-        check_btn = tk.Checkbutton(frame_order, variable=self.check_val, bg="#94b4d1")
+        check_btn = tk.Checkbutton(frame_order, variable=self.check_val,
+                                   bg="#94b4d1")
         check_btn.place(relx=0.5, rely=0.5)
 
-        btn_exec = ttk.Button(frame_order, text="Execute Trade", command=lambda: self.create_order())
+        btn_exec = ttk.Button(frame_order, text="Execute Trade",
+                              command=lambda: self.create_order())
         btn_exec.place(relx=0.57, rely=0.7)
 
-        btn_position = ttk.Button(back_frame, text="Refresh Positions", command=lambda: self.refresh_positions())
+        btn_position = ttk.Button(back_frame, text="Refresh Positions",
+                                  command=lambda: self.refresh_positions())
         btn_position.place(relx=0.02, rely=0.35)
 
         self.tv_positions = ttk.Treeview(frame_positions)
@@ -280,17 +301,21 @@ class AlgoTradingFrame(BaseFrame):
 
         self.Presenter = p.AlgoTrading(view=self)
 
-        frame_chart = tk.LabelFrame(self, frame_styles, text="Graph with strategies")
+        frame_chart = tk.LabelFrame(self, frame_styles,
+                                    text="Graph with strategies")
         frame_chart.place(rely=0.40, relx=0.05, relheight=0.55, relwidth=0.9)
         self.canvas_chart = tk.Canvas(frame_chart)
         self.canvas_chart.pack(expand=True, fill="both")
 
-        frame_order = tk.LabelFrame(self, frame_styles, text="Algorithm Settings")
+        frame_order = tk.LabelFrame(self, frame_styles,
+                                    text="Algorithm Settings")
         frame_order.place(rely=0.05, relx=0.05, height=200, width=400)
 
-        frame_fil = tk.LabelFrame(self, frame_styles, text="Live Algorithm Responses")
+        frame_fil = tk.LabelFrame(self, frame_styles,
+                                  text="Live Algorithm Responses")
         frame_fil.place(rely=0.05, relx=0.50, height=200, width=400)
-        self.label_fil = tk.Label(frame_fil, bg="#D5D5D5", relief="ridge", bd=3, font=("Verdana", 8))
+        self.label_fil = tk.Label(frame_fil, bg="#D5D5D5",
+                                  relief="ridge", bd=3, font=("Verdana", 8))
         self.label_fil.pack(expand=True, fill="both")
 
         list_strategy = ("Golden Cross", "RSI")
@@ -317,14 +342,18 @@ class AlgoTradingFrame(BaseFrame):
         self.entry_ccy2 = ttk.Entry(frame_order, width=20, cursor="xterm")
         self.entry_ccy2.place(relx=0.35, rely=0.40)
 
-        option_menu_strategy = ttk.OptionMenu(frame_order, self.strategy, list_strategy[0], *list_strategy)
+        option_menu_strategy = ttk.OptionMenu(frame_order, self.strategy,
+                                              list_strategy[0], *list_strategy)
         option_menu_strategy.place(relx=0.35, rely=0.60)
-        option_menu_duration = ttk.OptionMenu(frame_order, self.duration, list_duration[0], *list_duration)
+        option_menu_duration = ttk.OptionMenu(frame_order, self.duration,
+                                              list_duration[0], *list_duration)
         option_menu_duration.place(relx=0.35, rely=0.80)
 
-        btn_execution = ttk.Button(frame_order, text="Execute Algorithm", command=lambda: self.initate_algorithm())
+        btn_execution = ttk.Button(frame_order, text="Execute Algorithm",
+                                   command=lambda: self.initate_algorithm())
         btn_execution.place(relx=0.69, rely=0.71)
-        btn_chart = ttk.Button(frame_order, text="Draw Intraday Chart", command=lambda: self.initiate_algo_chart())
+        btn_chart = ttk.Button(frame_order, text="Draw Intraday Chart",
+                               command=lambda: self.initiate_algo_chart())
         btn_chart.place(relx=0.69, rely=0.86)
 
         self.canvas1 = None
@@ -390,7 +419,8 @@ class SecurityPricesFrame(BaseFrame):
 
         self.Presenter = p.SecurityPrices(view=self)
 
-        frame_options = tk.LabelFrame(self, frame_styles, text="Create a Chart")
+        frame_options = tk.LabelFrame(self, frame_styles,
+                                      text="Create a Chart")
         frame_options.place(rely=0.05, relx=0.05, relheight=0.40, relwidth=0.30)
         frame_price = tk.LabelFrame(self, frame_styles, text="Latest Prices")
         frame_price.place(rely=0.50, relx=0.05, relheight=0.30, relwidth=0.30)
@@ -400,7 +430,8 @@ class SecurityPricesFrame(BaseFrame):
         self.canvas_chart = tk.Canvas(frame_chart, bg="#D5D5D5")
         self.canvas_chart.pack(expand=True, fill="both")
 
-        frame_toolbar = tk.LabelFrame(self, frame_styles, text="Toolbar Options")
+        frame_toolbar = tk.LabelFrame(self, frame_styles,
+                                      text="Toolbar Options")
         frame_toolbar.place(rely=0.82, relx=0.05, relheight=0.09, relwidth=0.30)
         self.chart_toolbar = tk.Canvas(frame_toolbar, bg="#D5D5D5")
         self.chart_toolbar.pack(expand=True, fill="both")
@@ -421,17 +452,22 @@ class SecurityPricesFrame(BaseFrame):
         self.period = tk.StringVar(frame_options)
         self.indicator = tk.StringVar(frame_options)
 
-        option_menu_period = ttk.OptionMenu(frame_options, self.period, list_period[0], *list_period)
+        option_menu_period = ttk.OptionMenu(frame_options, self.period,
+                                            list_period[0], *list_period)
         option_menu_period.place(relx=0.5, rely=0.40)
         label_period = tk.Label(frame_options, text_styles, text="Period")
         label_period.place(relx=0.24, rely=0.40)
 
-        option_menu_indicator = ttk.OptionMenu(frame_options, self.indicator, list_indicator[0], *list_indicator)
+        option_menu_indicator = ttk.OptionMenu(frame_options, self.indicator,
+                                               list_indicator[0],
+                                               *list_indicator)
         option_menu_indicator.place(relx=0.5, rely=0.55)
-        label_indicator = tk.Label(frame_options, text_styles, text="Indicator")
+        label_indicator = tk.Label(frame_options, text_styles,
+                                   text="Indicator")
         label_indicator.place(relx=0.24, rely=0.55)
 
-        btn_draw = ttk.Button(frame_options, text="Draw Chart", command=lambda: self.initiate_chart())
+        btn_draw = ttk.Button(frame_options, text="Draw Chart",
+                              command=lambda: self.initiate_chart())
         btn_draw.place(relx=0.64, rely=0.8)
 
         self.tv_prices = ttk.Treeview(frame_price)
@@ -499,8 +535,6 @@ class SecurityPricesFrame(BaseFrame):
         canvas._tkcanvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
 
-
-
 class CurrentPositionsFrame(BaseFrame):
     def __init__(self, parent, app):
         super().__init__(parent)
@@ -510,7 +544,8 @@ class CurrentPositionsFrame(BaseFrame):
         frame1 = tk.LabelFrame(self, frame_styles, text="All Positions")
         frame1.place(rely=0.05, relx=0.05, relheight=0.85, relwidth=0.9)
 
-        btn_position = ttk.Button(self, text="Refresh Positions", command=lambda: self.refresh_positions())
+        btn_position = ttk.Button(self, text="Refresh Positions",
+                                  command=lambda: self.refresh_positions())
         btn_position.place(rely=0.9, relx=0.84)
 
         self.tv_positions = ttk.Treeview(frame1)
@@ -549,10 +584,12 @@ class PositionRecFrame(BaseFrame):
 
         self.Presenter = p.PositionReconciliation(view=self)
 
-        frame1 = tk.LabelFrame(self, frame_styles, text="Position Reconciliation")
+        frame1 = tk.LabelFrame(self, frame_styles,
+                               text="Position Reconciliation")
         frame1.place(rely=0.10, relx=0.05, relheight=0.75, relwidth=0.9)
 
-        btn_position = ttk.Button(self, text="Run Reconciliation", command=lambda: self.initiate_rec())
+        btn_position = ttk.Button(self, text="Run Reconciliation",
+                                  command=lambda: self.initiate_rec())
         btn_position.place(rely=0.9, relx=0.84)
 
         self.tv_positions = ttk.Treeview(frame1)
@@ -617,16 +654,23 @@ class TradeBookingsFrame(BaseFrame):
         self.entry_id = ttk.Entry(frame2, width=7, cursor="xterm")
         self.entry_id.place(rely=0.05, relx=0.35)
         self.check_val = tk.IntVar(parent)
-        cancel_btn = tk.Radiobutton(frame2, text="Uncancel", variable=self.check_val, value=0, bg="#94b4d1")
+        cancel_btn = tk.Radiobutton(frame2, text="Uncancel",
+                                    variable=self.check_val, value=0,
+                                    bg="#94b4d1")
         cancel_btn.place(rely=0.3, relx=0.35)
-        uncancel_btn = tk.Radiobutton(frame2, text="Cancel", variable=self.check_val, value=1, bg="#94b4d1")
+        uncancel_btn = tk.Radiobutton(frame2, text="Cancel",
+                                      variable=self.check_val, value=1,
+                                      bg="#94b4d1")
         uncancel_btn.place(rely=0.5, relx=0.35)
 
-        btn_submit1 = ttk.Button(frame1, text="Insert", command=lambda: self.add_transaction())
+        btn_submit1 = ttk.Button(frame1, text="Insert",
+                                 command=lambda: self.add_transaction())
         btn_submit1.place(rely=0.75, relx=0.40)
-        btn_submit2 = ttk.Button(frame2, text="Amend Status", command=lambda: self.change_status())
+        btn_submit2 = ttk.Button(frame2, text="Amend Status",
+                                 command=lambda: self.change_status())
         btn_submit2.place(rely=0.70, relx=0.35)
-        btn_refresh = ttk.Button(frame1, text="Refresh", command=lambda: self.refresh_transactions())
+        btn_refresh = ttk.Button(frame1, text="Refresh",
+                                 command=lambda: self.refresh_transactions())
         btn_refresh.place(rely=0.75, relx=0.60)
 
         self.tv_transactions = ttk.Treeview(frame3)
@@ -678,7 +722,6 @@ class TradeBookingsFrame(BaseFrame):
     def clear_status_entries(self):
         self.entry_id.delete(0, "end")
 
-
     def clear_transaction_entries(self):
         self.entry_name.delete(0, "end")
         self.entry_quantity.delete(0, "end")
@@ -703,10 +746,12 @@ class UsTreasuryConvWindow(tk.Toplevel):
 
         self.Presenter = p.UsTreasuryConvWindow(view=self)
 
-        frame1 = tk.LabelFrame(main_frame, frame_styles, text="Enter the price you want to convert")
+        frame1 = tk.LabelFrame(main_frame, frame_styles,
+                               text="Enter the price you want to convert")
         frame1.pack(expand=True, fill="both")
 
-        label = tk.Label(frame1, text="Enter price here: ", font=("Trebuchet MS", 9), bg="#94b4d1")
+        label = tk.Label(frame1, text="Enter price here: ",
+                         font=("Trebuchet MS", 9), bg="#94b4d1")
         label.place(rely=0.05, relx=0.05)
 
         self.entry1 = ttk.Entry(frame1, width=7, cursor="xterm")
@@ -715,7 +760,8 @@ class UsTreasuryConvWindow(tk.Toplevel):
         self.label2 = tk.Label(frame1)
         self.label2.place(rely=0.4, relx=0.3, height=75, width=150)
 
-        btn_convert = ttk.Button(frame1, text="Convert price", command=lambda: self.initiate_conversion())
+        btn_convert = ttk.Button(frame1, text="Convert price",
+                                 command=lambda: self.initiate_conversion())
         btn_convert.place(rely=0.20, relx=0.50)
 
     def initiate_conversion(self):
@@ -753,8 +799,10 @@ class AboutPageWindow(tk.Toplevel):
         improved my knowledge on a variety of python libraries, APIs and SQL\n
         it has also been very helpful on increasing my understanding of\n
         Functions and OOP."""
-        frame1 = tk.LabelFrame(main_frame, frame_styles, text="Thank you for viewing")
+        frame1 = tk.LabelFrame(main_frame, frame_styles,
+                               text="Thank you for viewing")
         frame1.pack(expand=True, fill="both")
 
-        label = tk.Label(frame1, text=bio, font=("Trebuchet MS", 9), bg="#94b4d1")
+        label = tk.Label(frame1, text=bio,
+                         font=("Trebuchet MS", 9), bg="#94b4d1")
         label.pack(expand=True)

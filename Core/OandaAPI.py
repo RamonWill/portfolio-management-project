@@ -3,27 +3,27 @@ from oandapyV20 import API
 import oandapyV20.endpoints.accounts as accounts
 import oandapyV20.endpoints.pricing as pricing
 import oandapyV20.endpoints.orders as orders
-import oandapyV20.endpoints.positions as positions
+import oandapyV20.endpoints.positions as Positions
 
 # documentation - https://oanda-api-v20.readthedocs.io/en/latest/
 # the import error exception is raised if i run this file from prmsystem_api
 
 try:
-    import config
+    from config import Configurations
     from DatabaseConnections import PRMS_Database
 except ImportError:
-    import Core.config as config
+    from Core.config import Configurations
     from Core.DatabaseConnections import PRMS_Database
 
 
-api_key = config.oanda_key
-accountID = config.oanda_account
+api_key = Configurations.OANDA_KEY
+accountID = Configurations.OANDA_ACCOUNT
 url = "https://api-fxpractice.oanda.com"
 
 client = API(access_token=api_key)
 
 
-def Oanda_acc_summary():
+def oanda_acc_summary():
     """Requests the account details from oanda"""
     account_details = accounts.AccountDetails(accountID)
     client.request(account_details)
@@ -70,7 +70,7 @@ def load_instruments():
     print(f"Completed. {count} item(s) added to the database.")
 
 
-def Oanda_prices():
+def oanda_prices():
     """Request instrument prices from oanda."""
 
     with PRMS_Database() as db:
@@ -100,7 +100,7 @@ def Oanda_prices():
     return list_prices
 
 
-def Market_order(units, instrument):
+def market_order(units, instrument):
     # data must be organised as a JSON orderbody data (JSON (required)) to send
     """Send a trade order to Oanda and return a JSON response of the trade
     confirmation
@@ -154,9 +154,15 @@ def fil_success(fil):
     details = (fil_type, time, transid, account,
                id, instrument, units, price, profit)
 
-    fil_information = (" {}\n Execution Time: {}\n Request ID: {}\n "
-    "Account ID: {}\n Order ID: {}\n\n Instrument: {}\n Units: {}\n "
-    "Price: {}\n Gain/Loss: {}").format(*details)
+    fil_information = ("{}\n"
+                       "Execution Time: {}\n"
+                       "Request ID: {}\n"
+                       "Account ID: {}\n"
+                       "Order ID: {}\n\n"
+                       "Instrument: {}\n"
+                       "Units: {}\n"
+                       "Price: {}\n"
+                       "Gain/Loss: {}").format(*details)
 
     return fil_information
 
@@ -173,13 +179,17 @@ def fil_cancellation(fil):
     details = (fil_type, reason, account, id,
                time, instrument, units)
 
-    fil_information = (" {}\n Order Cancel Reason: {}\n "
-    "Account ID: {}\n Order ID: {}\n\n Cancellation Time: {}\n "
-    "Instrument: {}\n Units: {}\n").format(*details)
+    fil_information = ("{}\n"
+                       "Order Cancel Reason: {}\n"
+                       "Account ID: {}\n"
+                       "Order ID: {}\n\n"
+                       "Cancellation Time: {}\n"
+                       "Instrument: {}\n"
+                       "Units: {}\n").format(*details)
     return fil_information
 
 
-def Execution_details(order_details):
+def execution_details(order_details):
     """Converts a JSON trade confirmation into a readable string
 
     Parameters:
@@ -230,7 +240,7 @@ def trade_to_db(order_details):
         return None
 
 
-def Open_positions(detail="basic"):
+def live_positions(detail="basic"):
     """Request the open positions on the oanda account
 
     Parameters:
@@ -240,46 +250,40 @@ def Open_positions(detail="basic"):
     dataframe: a matrix with 2 columns or a matrix withall columns.
     """
 
-    current_positions = positions.OpenPositions(accountID=accountID)
+    current_positions = Positions.OpenPositions(accountID=accountID)
     client.request(current_positions)
     position_info = current_positions.response
-    position_details = position_info["positions"]
-
+    positions = position_info["positions"]
     with PRMS_Database() as db:
         instrument_names = db.get_db_instruments()
 
-    list_positions = []
-    for header in position_details:
-        instrument = header["instrument"]
+    position_details = []
+    for position in positions:
+        instrument = position["instrument"]
         instrument_name = instrument_names.get(instrument)
-        if int(header["short"]["units"]) < 0:
 
-            avg_price = header["short"]["averagePrice"]
-            units = header["short"]["units"]
-            pnl = header["short"]["pl"]
-            unrel_pnl = header["short"]["unrealizedPL"]
+        if int(position["short"]["units"]) < 0:
+            position_data = position["short"]
 
-            list_positions.append([instrument_name, units, avg_price,
-                                   unrel_pnl, pnl])
+        elif int(position["long"]["units"]) > 0:
+            position_data = position["long"]
 
-        elif int(header["long"]["units"]) > 0:
+        avg_price = position_data["averagePrice"]
+        units = position_data["units"]
+        pnl = position_data["pl"]
+        unrel_pnl = position_data["unrealizedPL"]
 
-            avg_price = header["long"]["averagePrice"]
-            units = header["long"]["units"]
-            pnl = header["long"]["pl"]
-            unrel_pnl = header["long"]["unrealizedPL"]
+        data = [instrument_name, units, avg_price, unrel_pnl, pnl]
+        position_details.append(data)
 
-            list_positions.append([instrument_name, units, avg_price,
-                                   unrel_pnl, pnl])
-
-    if len(list_positions) == 0:
+    if len(position_details) == 0:
         print("There are no positions")
         return None
 
     if detail == "basic":
-        return [row[0:2] for row in list_positions]  # instrument name, units
+        return [row[0:2] for row in position_details]  # instrument name, units
     elif detail == "advanced":
-        return list_positions
+        return position_details
     else:
         raise TypeError("detail should be 'basic' or 'advanced'")
 
@@ -332,7 +336,7 @@ class Reconciliation(object):
         self.prms_pos = self.get_prms_positions()
 
     def get_oanda_positions(self):
-        data = Open_positions("advanced")
+        data = live_positions("advanced")
         headers = ["Instrument", "Units", "Average Price", "Unrealised P&L",
                    "P&L"]
         pos = pd.DataFrame.from_records(data, columns=headers)
