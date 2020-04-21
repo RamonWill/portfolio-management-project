@@ -5,12 +5,34 @@ from collections import namedtuple
 PARENT_PATH = Path(__file__).parent.parent
 sys.path.insert(0, str(PARENT_PATH))
 
-import Core.OandaAPI as OandaAPI
-from Core.NewsAPI import latest_news
-from Core.DatabaseConnections import PRMS_Database
-from Core.VantageAlphaAPI import AV_FXData
-from Core.AlgoTradingAPI import Algo
-from Core.Calculations import Convertprice
+import Models.OandaAPI as OandaAPI
+from Models.NewsAPI import latest_news
+from Models.DatabaseConnections import PRMS_Database
+from Models.VantageAlphaAPI import AV_FXData
+from Models.AlgoTradingAPI import Algo
+from Models.Calculations import Convertprice
+
+
+class LoginPage(object):
+    def __init__(self, view):
+        super().__init__()
+        self.View = view
+
+    def validate_login(self, username, password):
+        with PRMS_Database() as db:
+            validation = db.Validate_login(username, password)
+        return validation
+
+
+class RegistrationPage(object):
+    def __init__(self, view):
+        super().__init__()
+        self.View = view
+
+    def validate_registration(self, username, password):
+        with PRMS_Database() as db:
+            validation = db.registration(username, password)
+        return validation
 
 
 class HomePage(object):

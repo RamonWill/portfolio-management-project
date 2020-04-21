@@ -1,9 +1,16 @@
 import tkinter as tk
 from tkinter import ttk
-from Core.DatabaseConnections import PRMS_Database
+from Models.DatabaseConnections import PRMS_Database
+import sys
+from pathlib import Path
+
+PARENT_PATH = Path(__file__).parent.parent
+sys.path.insert(0, str(PARENT_PATH))
+
+from Presenters import presenters as p
 
 
-class LoginPage(tk.Toplevel):
+class LoginPageFrame(tk.Toplevel):
     def __init__(self, parent):
         super().__init__()
         self.root = parent
@@ -21,6 +28,8 @@ class LoginPage(tk.Toplevel):
         self.title("PRMSystem")
         self.geometry("626x431")  # Sets window size to 626w x 431h pixels
         self.resizable(0, 0)  # This prevents any resizing of the screen
+
+        self.Presenter = p.LoginPage(view=self)
 
         self.background_image = tk.PhotoImage(file=r"Views\login_bg_img.png")
         background_label = tk.Label(main_frame, image=self.background_image)
@@ -63,13 +72,12 @@ class LoginPage(tk.Toplevel):
                     background="#74CAE3")
 
     def get_signup(self):
-        RegistrationPage()
+        RegistrationPageFrame()
 
     def getlogin(self):
         user = self.entry_user.get()
         pw = self.entry_pw.get()
-        with PRMS_Database() as db:
-            validation = db.Validate_login(user, pw)
+        validation = self.Presenter.validate_login(username=user, password=pw)
 
         if validation:
             tk.messagebox.showinfo("Login Successful", f"Welcome {user}")
@@ -80,7 +88,7 @@ class LoginPage(tk.Toplevel):
             tk.messagebox.showerror("Information", message=msg)
 
 
-class RegistrationPage(tk.Toplevel):
+class RegistrationPageFrame(tk.Toplevel):
     def __init__(self):
         super().__init__()
 
@@ -92,6 +100,8 @@ class RegistrationPage(tk.Toplevel):
         # pack_propagate prevents the window resizing to match the widgets
         main_frame.pack_propagate(0)
         main_frame.pack(fill="both", expand="true")
+
+        self.Presenter = p.RegistrationPage(view=self)
 
         self.geometry("250x150")
         self.resizable(0, 0)
@@ -114,18 +124,18 @@ class RegistrationPage(tk.Toplevel):
         self.entry_code.grid(row=3, column=1)
 
         btn = ttk.Button(main_frame, text="Create Account",
-                         command=lambda: self.signup())
+                         command=lambda: self.register())
         btn.grid(row=4, column=1)
 
-    def signup(self):
+    def register(self):
         user = self.entry_user.get()
         pw = self.entry_pw.get()
         passcode = self.entry_code.get()
 
         if passcode == "2020" and len(pw) > 4:
-            with PRMS_Database() as db:
-                status = db.registration(user, pw)
-            if isinstance(status, str):
+            validation = self.Presenter.validate_registration(username=user,
+                                                              password=pw)
+            if isinstance(validation, str):
                 msg = "The Username you have entered already exists."
                 tk.messagebox.showerror("Information", message=msg)
             else:
