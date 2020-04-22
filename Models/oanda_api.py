@@ -10,10 +10,10 @@ import oandapyV20.endpoints.positions as Positions
 
 try:
     from config import Configurations
-    from DatabaseConnections import PRMS_Database
+    from database_connections import PRMS_Database
 except ImportError:
-    from Models.config import Configurations
-    from Models.DatabaseConnections import PRMS_Database
+    from models.config import Configurations
+    from models.database_connections import PRMS_Database
 
 
 api_key = Configurations.OANDA_KEY
@@ -343,10 +343,10 @@ class Reconciliation(object):
         data = live_positions("advanced")
         if not data:
             return None
-        
+
         headers = ["Instrument", "Units", "Average Price", "Unrealised P&L",
                    "P&L"]
-        
+
         pos = pd.DataFrame.from_records(data, columns=headers)
         pos["Average Price"] = pos["Average Price"].astype(float)
         pos["Units"] = pos["Units"].astype(float)

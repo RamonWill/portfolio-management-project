@@ -1,6 +1,5 @@
 import tkinter as tk
 from tkinter import ttk
-from Models.DatabaseConnections import PRMS_Database
 import sys
 from pathlib import Path
 

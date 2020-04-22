@@ -1,6 +1,6 @@
 class Configurations(object):
-    # Database
-    DATABASE_NAME = ""  # Default value "source.db"
+    # Database (the default name is source.db)
+    DATABASE_NAME = "source.db"
 
     # Oanda Account
     OANDA_ACCOUNT = ""

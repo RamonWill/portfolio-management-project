@@ -6,9 +6,9 @@ from oandapyV20 import API
 try:
     from config import Configurations
 except ImportError:
-    from Models.config import Configurations
-    from Models.OandaAPI import market_order, execution_details
-    from Models.VantageAlphaAPI import est_to_utc
+    from models.config import Configurations
+    from models.oanda_api import market_order, execution_details
+    from models.vantage_alpha_api import est_to_utc
 # https://www.investopedia.com/articles/active-trading/101014/basics-algorithmic-trading-concepts-and-examples.asp
 
 # Golden Cross strategy - based on 15 and 5 period moving average

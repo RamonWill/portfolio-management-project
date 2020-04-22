@@ -5,7 +5,7 @@ from pathlib import Path
 try:
     from config import Configurations
 except ImportError:
-    from Models.config import Configurations
+    from models.config import Configurations
 
 DATABASE_NAME = Configurations.DATABASE_NAME
 PARENT_PATH = Path(__file__).parent.parent

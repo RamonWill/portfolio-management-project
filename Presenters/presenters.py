@@ -5,12 +5,12 @@ from collections import namedtuple
 PARENT_PATH = Path(__file__).parent.parent
 sys.path.insert(0, str(PARENT_PATH))
 
-import Models.OandaAPI as OandaAPI
-from Models.NewsAPI import latest_news
-from Models.DatabaseConnections import PRMS_Database
-from Models.VantageAlphaAPI import AV_FXData
-from Models.AlgoTradingAPI import Algo
-from Models.Calculations import Convertprice
+import models.oanda_api as OandaAPI
+from models.news_api import latest_news
+from models.database_connections import PRMS_Database
+from models.vantage_alpha_api import AV_FXData
+from models.algo_trading_api import Algo
+from models.calculations import Convertprice
 
 
 class LoginPage(object):

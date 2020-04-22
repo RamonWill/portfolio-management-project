@@ -4,7 +4,7 @@ import sys
 # Set up Database Tables
 PARENT_PATH = Path(__file__).parent.parent
 sys.path.insert(0, str(PARENT_PATH))
-from Models.config import Configurations
+from models.config import Configurations
 
 
 def Setup_database_tables(path):

@@ -1,9 +1,9 @@
 import tkinter as tk
-import Models.OandaAPI as OandaAPI
-from Setup.setup import Setup_database_tables, check_configurations
+import models.oanda_api as OandaAPI
+from setups.setup import Setup_database_tables, check_configurations
 import os
 from Views import views, navigation, auth
-from Models.config import Configurations
+from models.config import Configurations
 
 # Portfolio Reconciliation and Management System (PRMS)
 
