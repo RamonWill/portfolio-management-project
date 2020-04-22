@@ -75,6 +75,10 @@ def oanda_prices():
 
     with PRMS_Database() as db:
         instrument_names = db.get_db_instruments()
+        # if prices don't exist in the database, reload them
+        if not instrument_names:
+            load_instruments()
+            instrument_names = db.get_db_instruments()
 
     instrument_keys = list(instrument_names.keys())
     instrument_keys_sorted = ",".join(instrument_keys)  # A sorted string
