@@ -14,9 +14,14 @@ class DataTable(ttk.Treeview):
             scroll_Y.pack(side="right", fill="y")
             scroll_X.pack(side="bottom", fill="x")
 
-    def set_datatable(self, dataframe):
+    def set_datatable_from_dataframe(self, dataframe):
         self.stored_dataframe = dataframe
         self._draw_table(dataframe)
+
+    def set_datatable_from_object(self, objects):
+        df = pd.DataFrame([vars(header) for header in objects])
+        self.stored_dataframe = df
+        self._draw_table(df)
 
     def _draw_table(self, dataframe):
         self.delete(*self.get_children())

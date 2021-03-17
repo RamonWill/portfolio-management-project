@@ -2,12 +2,16 @@ import tkinter as tk
 from tkinter import ttk
 import webbrowser
 from ..basepage import BasePage
+from presenters import HomePresenter
 from custom_objects.datatable import DataTable
 
 
 class HomePage(BasePage):
     def __init__(self, parent, app):
         super().__init__(parent)
+
+        self.presenter = HomePresenter(view=self, db=app.db, news=app.news_connection)
+
         frame_account = tk.LabelFrame(self, self.frame_styles,
                                       text="Account Details")
         frame_account.place(rely=0.05, relx=0.02, height=120, width=300)
@@ -50,12 +54,15 @@ class HomePage(BasePage):
         self.pie_chart.pack()
 
         self.pie_canvas = None
-
+        self._refresh_all()
 
     def _refresh_all(self):
-        pass
+        self.presenter.get_homepage_data()
 
     def open_news_link(self, event):
-        row_id = self.tv_news.selection()
-        link = self.tv_news.item(row_id, "values")[2]
+        row_id = self.news_table.selection()
+        link = self.news_table.item(row_id, "values")[2]
         webbrowser.open_new_tab(link)
+
+    def display_data(self, articles):
+        self.news_table.set_datatable_from_object(articles)

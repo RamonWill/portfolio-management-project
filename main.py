@@ -1,9 +1,7 @@
 import tkinter as tk
-import os
-import custom_objects
 from navigation import Navbar
 from views import HomePage, AboutWindow, CalculationsWindow
-
+from external_connections.news_api import NewsConnection
 # Portfolio Reconciliation and Management System (PRMS)
 
 
@@ -16,11 +14,12 @@ class Application(tk.Tk):
         self.main_frame.pack_propagate(0)
         self.geometry("1024x600")
         self.resizable(0, 0)
-        self.xxx = 1
+        self.db = None
+        self.alphavantage_connection = None
+        self.news_connection = NewsConnection("3fd4076c2a15490ca9a979cd52429448")
+        self.oanda_connection  = None
         self.current_page = tk.Frame()
         self.show_frame(HomePage)
-
-
         menubar = Navbar(root=self)
         tk.Tk.config(self, menu=menubar)
 
@@ -29,7 +28,6 @@ class Application(tk.Tk):
         self.current_page = name(parent=self.main_frame, app=self)
         self.current_page.place(rely=0, relx=0)
         self.current_page.tkraise()
-        print(self.xxx)
 
     def show_about_window(self):
         about = AboutWindow()
@@ -47,5 +45,8 @@ class Application(tk.Tk):
 
 if __name__ == "__main__":
     root = Application()
+    authenticator = None  # This will be the login/register tasks might need to communicate with the application so maybe
+    # make the application withdraw itself? login then if successful update the apis from the db..
     #root.withdraw()
     root.mainloop()
+

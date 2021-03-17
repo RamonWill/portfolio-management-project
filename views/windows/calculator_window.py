@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
-
+from presenters import CalculationsPresenter
 from .basewindow import BaseWindow
 
 
@@ -13,7 +13,7 @@ class CalculationsWindow(BaseWindow):
 
         self.title("T-Bill Conversion")
 
-        #self.Presenter = p.UsTreasuryConvWindow(view=self)
+        self.presenter = CalculationsPresenter(view=self)
 
         frame1 = tk.LabelFrame(self.base_frame, self.frame_styles,
                                text="Enter the price you want to convert")
@@ -34,10 +34,8 @@ class CalculationsWindow(BaseWindow):
         btn_convert.place(rely=0.20, relx=0.50)
 
     def initiate_conversion(self):
-        pass
-        # price = self.entry1.get()
-        # self.Presenter.conversion(price=price)
+        price = self.entry1.get()
+        self.presenter.convert_price(price=price)
 
     def display_conversion(self, new_price):
-        pass
-        # self.label2["text"] = new_price
+        self.label2.configure(text=new_price)
