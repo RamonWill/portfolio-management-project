@@ -1,0 +1,2 @@
+class ConnectionObject(object):
+    pass

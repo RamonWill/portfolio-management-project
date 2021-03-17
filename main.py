@@ -16,8 +16,10 @@ class Application(tk.Tk):
         self.main_frame.pack_propagate(0)
         self.geometry("1024x600")
         self.resizable(0, 0)
+        self.xxx = 1
         self.current_page = tk.Frame()
         self.show_frame(HomePage)
+
 
         menubar = Navbar(root=self)
         tk.Tk.config(self, menu=menubar)
@@ -27,6 +29,7 @@ class Application(tk.Tk):
         self.current_page = name(parent=self.main_frame, app=self)
         self.current_page.place(rely=0, relx=0)
         self.current_page.tkraise()
+        print(self.xxx)
 
     def show_about_window(self):
         about = AboutWindow()
