@@ -1,5 +1,6 @@
 import tkinter as tk
 import os
+import custom_objects
 from navigation import Navbar
 from views import *
 

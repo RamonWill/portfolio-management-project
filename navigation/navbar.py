@@ -1,6 +1,7 @@
 import tkinter as tk
 from views import *
-from custom_objects.callback import Callback
+from custom_objects import Callback
+
 
 class Navbar(tk.Menu):
     def __init__(self, root):
