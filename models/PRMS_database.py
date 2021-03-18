@@ -5,6 +5,7 @@ class DBContext(object):
     def __init__(self, db_file=""):
         self.db_file = db_file
         self.connection_status = Path(db_file).exists()
+
     def __enter__(self):
         self.conn= sqlite3.connect(self.db_file)
         self.conn.row_factory = sqlite3.Row
@@ -33,6 +34,7 @@ class PRMS_Database(object):
         if not self.context.connection_status:
             self._setup_database_tables()
             self.context.connection_status=True
+        self.is_connected = self.context.connection_status
 
     def get_db_instruments(self):
         """ Extracts a list of all instruments from the source database."""
@@ -41,7 +43,7 @@ class PRMS_Database(object):
                                 FROM Instruments
                                 ORDER BY displayName;""")
             instrument_table = db.fetchall()
-        instrument_pairs = {row[0]: row[1] for row in instrument_table}
+        instrument_pairs = {row["name"]: row["displayName"] for row in instrument_table}
         return instrument_pairs
 
     def store_instruments(self, oanda_instruments):
@@ -60,10 +62,18 @@ class PRMS_Database(object):
         "Creates tables for the Database"
         with self.context as db:
             db.execute("CREATE TABLE IF NOT EXISTS LoginInfo \
-                         (username TEXT, password TEXT, oanda_api TEXT, news_api TEXT, alphaVantage_api TEXT)")
+                         (username TEXT, password TEXT, oanda_api TEXT, oanda_account TEXT, news_api TEXT, alphaVantage_api TEXT)")
             db.execute("CREATE TABLE IF NOT EXISTS Instruments\
                          (name TEXT, displayName TEXT)")
             db.execute("CREATE TABLE IF NOT EXISTS All_Transactions\
                          (id TEXT, name TEXT, quantity REAL, price REAL, pnl REAL, cancelled INTEGER)")
 
         print(f"A new database has been created in {self.DB_PATH}")
+
+    def get_credentials(self):
+        # I need to check the user first. so authenticator will need to be done first
+        with self.context as db:
+            db.execute("SELECT oanda_api, oanda_account, news_api, alphaVantage_api\
+                        FROM LoginInfo;")
+            credentials = db.fetchall()
+        return credentials

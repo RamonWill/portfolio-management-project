@@ -45,6 +45,7 @@ class Application(tk.Tk):
         all_instruments = self.oanda_connection.get_instruments()
         saved_instruments = self.db.store_instruments(all_instruments)
         messagebox.showinfo(message=f"{saved_instruments} saved.", title="Database Refresh")
+
     def quit_application(self):
         self.destroy()
 

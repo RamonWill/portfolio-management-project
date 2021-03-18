@@ -2,10 +2,15 @@ import tkinter as tk
 from tkinter import ttk
 from ..basepage import BasePage
 from custom_objects.datatable import DataTable
+from presenters import OrderPresenter
+
 
 class OrderPage(BasePage):
     def __init__(self, parent, app):
         super().__init__(parent)
+
+        self.presenter = OrderPresenter(view=self, db=app.db, oanda=app.oanda_connection)
+
         frame_order = tk.LabelFrame(self, self.frame_styles,
                                     text="Create an Order")
         frame_order.place(rely=0.03, relx=0.02, height=150, width=300)
@@ -52,11 +57,15 @@ class OrderPage(BasePage):
                                   command=self.refresh_positions)
         btn_position.place(relx=0.02, rely=0.35)
 
-        self.tv_positions = ttk.Treeview(frame_positions)
-        self.tv_positions.place(relheight=1, relwidth=0.995)
+        self.positions_table = DataTable(frame_positions)
+        self.positions_table.place(relheight=1, relwidth=0.995)
+        self.refresh_positions()
 
     def refresh_positions(self):
-        pass
+        self.presenter.get_live_positions()
 
     def create_order(self):
         pass
+
+    def display_positions(self, positions):
+        self.positions_table.set_datatable_from_object(positions)
