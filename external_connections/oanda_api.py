@@ -100,6 +100,7 @@ class OandaConnection(object):
                 unrel_pnl = position_data["unrealizedPL"]
                 advanced_position = OandaPositionsAdvanced(instrument, units,avg_price,unrel_pnl,pnl)
                 position_details.append(advanced_position)
+            return position_details
         else:
             return None # throw error in future
 

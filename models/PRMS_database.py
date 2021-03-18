@@ -1,5 +1,6 @@
 import sqlite3
 from pathlib import Path
+from collections import namedtuple
 
 class DBContext(object):
     def __init__(self, db_file=""):
@@ -85,6 +86,33 @@ class PRMS_Database(object):
 
         print(f"A new database has been created in {self.DB_PATH}")
 
+    def get_transactions(self):
+        query = "SELECT * FROM All_Transactions;"
+        with self.context as db:
+            db.execute(query)
+            result = db.fetchall()
+        transactions = []
+        for row in result:
+            t = DBTransaction(
+                id=row["id"], name=row["name"], quantity=row["quantity"],
+                price=row["price"], pnl=row["pnl"], cancelled=row["cancelled"]
+            )
+            transactions.append(t)
+
+        return transactions
+
+    def cancelled_toggle(self, id, toggle):
+        with self.context as db:
+            db.execute("""UPDATE all_Transactions
+                            SET cancelled = ?
+                            WHERE id = ?""", (toggle, id))
+            result = db.rowcount
+        if result == 0:
+            return "Order ID does not exist in the database."
+        else:
+            return f"Changes have been made to Order ID {id}."
+
+
     def get_credentials(self):
         # I need to check the user first. so authenticator will need to be done first
         with self.context as db:
@@ -92,3 +120,14 @@ class PRMS_Database(object):
                         FROM LoginInfo;")
             credentials = db.fetchall()
         return credentials
+
+
+class DBTransaction(object):
+    def __init__(self, id, name, quantity, price, pnl, cancelled):
+        self.id = id
+        self.name = name
+        self.quantity = quantity
+        self.price = price
+        self.pnl = pnl
+        self.cancelled = cancelled
+        

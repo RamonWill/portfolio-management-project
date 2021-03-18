@@ -1,12 +1,15 @@
 import tkinter as tk
 from tkinter import ttk
 from ..basepage import BasePage
+from presenters import TradeBookingsPresenter
 from custom_objects.datatable import DataTable
 
 
 class TradeBookingsPage(BasePage):
     def __init__(self, parent, app):
         super().__init__(parent)
+
+        self.presenter = TradeBookingsPresenter(view=self, db=app.db)
 
         frame1 = tk.LabelFrame(self, self.frame_styles, text="Manual Entry")
         frame1.place(rely=0.05, relx=0.05, relheight=0.20, relwidth=0.55)
@@ -55,12 +58,26 @@ class TradeBookingsPage(BasePage):
 
         self.transactions_table = DataTable(frame3, axis="both")
         self.transactions_table.place(relheight=1, relwidth=1)
+        self.refresh_transactions()
 
     def refresh_transactions(self):
-        pass
+        self.presenter.get_transactions()
 
     def add_transaction(self):
         pass
 
+    def display_transactions(self, transactions):
+        self.transactions_table.set_datatable_from_object(transactions)
+
     def change_status(self):
-        pass
+        toggle = int(self.check_val.get())
+        id = self.entry_id.get()
+        self.presenter.set_transaction_status(id, toggle)
+
+    def clear_status_entries(self):
+        self.entry_id.delete(0, "end")
+
+    def clear_transaction_entries(self):
+        self.entry_name.delete(0, "end")
+        self.entry_quantity.delete(0, "end")
+        self.entry_price.delete(0, "end")
