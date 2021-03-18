@@ -65,7 +65,20 @@ class OrderPage(BasePage):
         self.presenter.get_live_positions()
 
     def create_order(self):
-        pass
+        units = self.entry_units.get()
+        instrument = self.entry_instruments.get()
+        acknowledged = self.check_val.get()
+        self.presenter.execute_trade(units=units,
+                                     instrument=instrument,
+                                     acknowledged=acknowledged)
 
     def display_positions(self, positions):
         self.positions_table.set_datatable_from_object(positions)
+
+    def display_order_info(self, text=""):
+        self.label_details["text"] = text
+
+    def clear_entries(self):
+        self.entry_units.delete(0, "end")
+        self.entry_instruments.delete(0, "end")
+        self.check_val.set(False)

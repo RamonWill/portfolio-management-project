@@ -103,6 +103,101 @@ class OandaConnection(object):
         else:
             return None # throw error in future
 
+    def market_order(self, units, instrument):
+        # data must be organised as a JSON orderbody data (JSON (required)) to send
+        """Send a trade order to Oanda and return a JSON response of the trade
+        confirmation
+        Parameters:
+        units (int): The quantity of Instrument units to Buy or Sell.
+                         A positive integer is a Buy order whereas a negative
+                         integer is a Sell order.
+        instrument (str): The Instrument to Buy or Sell.
+        password (str): The password that will allow the trade to be executed.
+        Returns:
+        JSON: a JSON value that can be converted into a string.
+        """
+
+        datax = {
+          "order": {
+            "units": units,
+            "instrument": instrument,
+            "timeInForce": "FOK",
+            "type": "MARKET",
+            "positionFill": "DEFAULT"
+          }
+        }
+        order = orders.OrderCreate(accountID=self._account_id, data=datax)
+        self._api_client.request(order)
+
+        fill = order.response
+        return fill
+
+    def fill_success(self, fill):
+        fill_type = fill["orderFillTransaction"]["type"]
+        time = fill["orderFillTransaction"]["time"].replace("T", " ")
+        transid = fill["orderFillTransaction"]["requestID"]
+        account = fill["orderFillTransaction"]["accountID"]
+        id = fill["orderFillTransaction"]["orderID"]
+
+        instrument = fill["orderFillTransaction"]["instrument"]
+        units = fill["orderFillTransaction"]["units"]
+        price = fill["orderFillTransaction"]["price"]
+        profit = fill["orderFillTransaction"]["pl"]
+        details = (fill_type, time, transid, account,
+                   id, instrument, units, price, profit)
+
+        fill_information = ("{}\n"
+                           "Execution Time: {}\n"
+                           "Request ID: {}\n"
+                           "Account ID: {}\n"
+                           "Order ID: {}\n\n"
+                           "Instrument: {}\n"
+                           "Units: {}\n"
+                           "Price: {}\n"
+                           "Gain/Loss: {}").format(*details)
+
+        return fill_information
+
+
+    def fil_cancellation(self, fill):
+        fill_type = fill["orderCancelTransaction"]["type"]
+        reason = fill["orderCancelTransaction"]["reason"]
+        account = fill["orderCancelTransaction"]["accountID"]
+        id = fill["orderCancelTransaction"]["orderID"]
+
+        time = fill["orderCancelTransaction"]["time"].replace("T", " ")
+        instrument = fill["orderCreateTransaction"]["instrument"]
+        units = fill["orderCreateTransaction"]["units"]
+        details = (fill_type, reason, account, id,
+                   time, instrument, units)
+
+        fill_information = ("{}\n"
+                           "Order Cancel Reason: {}\n"
+                           "Account ID: {}\n"
+                           "Order ID: {}\n\n"
+                           "Cancellation Time: {}\n"
+                           "Instrument: {}\n"
+                           "Units: {}\n").format(*details)
+        return fill_information
+
+
+    def execution_details(self, fill):
+        """Converts a JSON trade confirmation into a readable string
+        Parameters:
+        order details (json): The JSON response from oanda.
+        Returns:
+        str: The trade confirmation in string format.
+        """
+        if isinstance(fill, str):
+            return f"{fill} is not a tradeable instrument"
+
+        if "orderFillTransaction" in fill:
+            fill_information = self.fill_success(fill)
+        else:
+            fill_information = self.fill_cancellation(fill)
+
+        return fill_information
+
 
 class AccountSummary(ConnectionObject):
     def __init__(self, nav, balance, currency):

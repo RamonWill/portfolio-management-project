@@ -58,6 +58,21 @@ class PRMS_Database(object):
                     count += 1
         return count
 
+    def record_trade(self, fill):
+        if not isinstance(fill, str):
+            if "orderFillTransaction" in fill:
+                id = fill["orderFillTransaction"]["orderID"]
+                instrument = fill["orderFillTransaction"]["instrument"]
+                units = fill["orderFillTransaction"]["units"]
+                price = fill["orderFillTransaction"]["price"]
+                profit = fill["orderFillTransaction"]["pl"]
+                cancelled = 0
+                with self.context as db:
+                    values = {"id":id,"name":instrument,"quantity":units,"price":price,"profit":profit, "cancelled":cancelled}
+                    insert_query = "INSERT INTO All_Transactions VALUES (:id, :name, :quantity, :price, :profit, :cancelled);"
+                    db.execute(insert_query, values)
+
+
     def _setup_database_tables(self):
         "Creates tables for the Database"
         with self.context as db:
