@@ -1,6 +1,7 @@
 from oandapyV20 import API
 from oandapyV20.endpoints import accounts, pricing, orders, positions
 from oandapyV20.exceptions import V20Error
+from external_connections.ConnectionObject import ConnectionObject
 # documentation - https://oanda-api-v20.readthedocs.io/en/latest/
 
 class OandaConnection(object):
@@ -26,9 +27,7 @@ class OandaConnection(object):
         nav = account_data["account"]["NAV"]
         balance = account_data["account"]["balance"]
         currency = account_data["account"]["currency"]
-        summary = [["NAV", nav],
-                           ["Balance", balance],
-                           ["Currency", currency]]
+        summary = AccountSummary(nav=nav, balance=balance, currency=currency)
 
         return summary
 
@@ -43,4 +42,33 @@ class OandaConnection(object):
         instrument_pairs = {i["name"]: i["displayName"] for i in all_instruments}
         return instrument_pairs
 
-x = OandaConnection("96732e2978c2339ada31ef16971308fd-5ef54f7a26646a169d04a02befb786ca", "101-004-18515982-001")
+    def get_live_prices(self, instruments):
+        if not self.connection_status or len(instruments)==0:
+            return []
+
+        params_prices = {"instruments": instruments}
+        pricing_details = pricing.PricingInfo(accountID=self.account_id,
+                                              params=params_prices)
+        self.api_client.request(pricing_details)
+        pricing_details = pricing_details.response
+        pricing_details = pricing_details["prices"]
+        all_prices = []
+        for header in pricing_details:
+            name = header["instrument"]
+            ask_price = header["asks"][0]["price"]
+            bid_price = header["bids"][0]["price"]
+            price = OandaPrices(instrument=name, ask=ask_price, bid=bid_price)
+            all_prices.append(price)
+        return all_prices
+
+class AccountSummary(ConnectionObject):
+    def __init__(self, nav=None, balance=None, currency=None):
+        self.nav = nav
+        self.balance = float(balance)
+        self.currency = currency
+
+class OandaPrices(ConnectionObject):
+    def __init__(self, instrument=None, bid=None, ask=None):
+        self.instrument = instrument
+        self.bid = float(bid)
+        self.ask = float(ask)

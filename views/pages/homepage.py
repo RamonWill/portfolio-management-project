@@ -10,7 +10,7 @@ class HomePage(BasePage):
     def __init__(self, parent, app):
         super().__init__(parent)
 
-        self.presenter = HomePresenter(view=self, db=app.db, news=app.news_connection)
+        self.presenter = HomePresenter(view=self, db=app.db, news=app.news_connection, oanda=app.oanda_connection)
 
         frame_account = tk.LabelFrame(self, self.frame_styles,
                                       text="Account Details")
@@ -33,7 +33,7 @@ class HomePage(BasePage):
         frame_chart.place(rely=0.55, relx=0.45, height=222, width=350)
 
         refresh_btn = ttk.Button(self, text="Refresh data",
-                                 command=lambda: self.refresh_all())
+                                 command=self._refresh_all)
         refresh_btn.place(rely=0.94, relx=0.9)
 
         self.label_rec_info = tk.Label(frame_rec, justify="left",
@@ -41,12 +41,12 @@ class HomePage(BasePage):
                                        bd=2, font=("Verdana", 10))
         self.label_rec_info.pack(expand=True, fill="both")
 
-        self.news_table = DataTable(frame_news)
+        self.news_table = DataTable(frame_news, axis="both")
         self.news_table.place(relheight=1, relwidth=0.995)
         self.news_table.bind("<Double-1>", self.open_news_link)
-        self.prices_table = DataTable(frame_prices, is_scrollable=True)
+        self.prices_table = DataTable(frame_prices, axis="both")
         self.prices_table.place(relheight=1, relwidth=0.995)
-        self.account_table = DataTable(frame_account)
+        self.account_table = DataTable(frame_account, axis="x")
         self.account_table.place(relheight=1, relwidth=0.995)
 
         self.pie_chart = tk.Canvas(frame_chart, bg="#D5D5D5",
@@ -64,5 +64,7 @@ class HomePage(BasePage):
         link = self.news_table.item(row_id, "values")[2]
         webbrowser.open_new_tab(link)
 
-    def display_data(self, articles):
+    def display_data(self, articles, account_summary, securities):
         self.news_table.set_datatable_from_object(articles)
+        self.account_table.set_datatable_from_object(account_summary)
+        self.prices_table.set_datatable_from_object(securities)

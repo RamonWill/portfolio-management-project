@@ -4,21 +4,35 @@ import pandas as pd
 
 
 class DataTable(ttk.Treeview):
-    def __init__(self, parent, is_scrollable=False):
+    def __init__(self, parent, axis=None):
         super().__init__(parent)
         self.stored_dataframe = pd.DataFrame()
-        if is_scrollable:
+
+
+        if axis=="both":
             scroll_Y = tk.Scrollbar(self, orient="vertical", command=self.yview)
             scroll_X = tk.Scrollbar(self, orient="horizontal", command=self.xview)
             self.configure(yscrollcommand=scroll_Y.set, xscrollcommand=scroll_X.set)
             scroll_Y.pack(side="right", fill="y")
             scroll_X.pack(side="bottom", fill="x")
+        elif axis=="x":
+            scroll_X = tk.Scrollbar(self, orient="horizontal", command=self.xview)
+            self.configure(xscrollcommand=scroll_X.set)
+            scroll_X.pack(side="bottom", fill="x")
+        elif axis=="y":
+            scroll_Y = tk.Scrollbar(self, orient="vertical", command=self.yview)
+            self.configure(yscrollcommand=scroll_Y.set)
+            scroll_Y.pack(side="right", fill="y")
+        else:
+            pass
 
     def set_datatable_from_dataframe(self, dataframe):
         self.stored_dataframe = dataframe
         self._draw_table(dataframe)
 
     def set_datatable_from_object(self, objects):
+        if not isinstance(objects, list):
+            objects = [objects]
         df = pd.DataFrame([vars(header) for header in objects])
         self.stored_dataframe = df
         self._draw_table(df)

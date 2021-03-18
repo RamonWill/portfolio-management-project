@@ -53,7 +53,7 @@ class TradeBookingsPage(BasePage):
                                  command=self.refresh_transactions)
         btn_refresh.place(rely=0.75, relx=0.60)
 
-        self.transactions_table = DataTable(frame3, is_scrollable=True)
+        self.transactions_table = DataTable(frame3, axis="both")
         self.transactions_table.place(relheight=1, relwidth=1)
 
     def refresh_transactions(self):

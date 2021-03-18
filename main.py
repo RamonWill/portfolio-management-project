@@ -1,7 +1,9 @@
 import tkinter as tk
+from tkinter import messagebox
 from navigation import Navbar
 from views import HomePage, AboutWindow, CalculationsWindow
-from external_connections.news_api import NewsConnection
+from external_connections import NewsConnection, AlphaVantageAPI, OandaConnection
+from models import PRMS_Database
 # Portfolio Reconciliation and Management System (PRMS)
 
 
@@ -14,10 +16,10 @@ class Application(tk.Tk):
         self.main_frame.pack_propagate(0)
         self.geometry("1024x600")
         self.resizable(0, 0)
-        self.db = None
-        self.alphavantage_connection = None
+        self.db = PRMS_Database()
+        self.alphavantage_connection = AlphaVantageAPI(api_key="UHJKNP33E9D8KCRS")
         self.news_connection = NewsConnection("3fd4076c2a15490ca9a979cd52429448")
-        self.oanda_connection  = None
+        self.oanda_connection  = OandaConnection(account_id="101-004-18515982-001", api_key="96732e2978c2339ada31ef16971308fd-5ef54f7a26646a169d04a02befb786ca")
         self.current_page = tk.Frame()
         self.show_frame(HomePage)
         menubar = Navbar(root=self)
@@ -39,6 +41,10 @@ class Application(tk.Tk):
         calc_view.focus_set()
         calc_view.grab_set()
 
+    def refresh_db_instruments(self):
+        all_instruments = self.oanda_connection.get_instruments()
+        saved_instruments = self.db.store_instruments(all_instruments)
+        messagebox.showinfo(message=f"{saved_instruments} saved.", title="Database Refresh")
     def quit_application(self):
         self.destroy()
 

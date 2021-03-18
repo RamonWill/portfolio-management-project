@@ -44,7 +44,7 @@ class Navbar(tk.Menu):
         menu_calculations = tk.Menu(self, menu_styles)
         self.add_cascade(label="Tools/Calculators", menu=menu_calculations)
         menu_calculations.add_command(label="32nds/Decimal Converter", command=root.show_calculations_window)
-        menu_calculations.add_command(label="Refresh database instruments...")
+        menu_calculations.add_command(label="Refresh database instruments...", command=root.refresh_db_instruments)
 
         # Help
         menu_help = tk.Menu(self, menu_styles)
