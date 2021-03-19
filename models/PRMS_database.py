@@ -24,7 +24,6 @@ class DBContext(object):
         self.conn.close()
 
 class PRMS_Database(object):
-
     def __init__(self):
         _DATABASE_NAME = "prms_database.db"
         _PARENT_PATH = Path(__file__).parent.parent
@@ -78,7 +77,7 @@ class PRMS_Database(object):
         "Creates tables for the Database"
         with self.context as db:
             db.execute("CREATE TABLE IF NOT EXISTS LoginInfo \
-                         (username TEXT, password TEXT, oanda_api TEXT, oanda_account TEXT, news_api TEXT, alphaVantage_api TEXT)")
+                         (username TEXT, salt BLOB, key BLOB, oanda_api TEXT, oanda_account TEXT, news_api TEXT, alphaVantage_api TEXT)")
             db.execute("CREATE TABLE IF NOT EXISTS Instruments\
                          (name TEXT, displayName TEXT)")
             db.execute("CREATE TABLE IF NOT EXISTS All_Transactions\
@@ -202,7 +201,36 @@ class PRMS_Database(object):
         positions = [DBPieChartData(row["name"],row["MarketVal"]) for row in db_positions]
         return positions
 
-class DBTransaction(object):
+    def validate_registration(self, username):
+        # check if username already exists
+        with self.context as db:
+            query = "SELECT Username FROM LoginInfo WHERE Username=?"
+            db.execute(query, (username,))
+            user = db.fetchone()
+        is_valid = user is None
+        return is_valid
+
+    def store_user_credentials(self, username, hash, oanda_account, oanda_api, news_api, alpha_vantage_api):
+        with self.context as db:
+            query = "INSERT INTO LoginInfo VALUES (:username, :key, :salt, :oanda_api, :oanda_account, :news_api, :alphaVantage_api)"
+            values = {"username":username, "key":hash["key"], "salt":hash["salt"], "oanda_account":oanda_account,
+                      "oanda_api":oanda_api, "news_api":news_api, "alphaVantage_api":alpha_vantage_api}
+            db.execute(query, values)
+
+    def get_user(self, username):
+        with self.context as db:
+            query = "SELECT * FROM LoginInfo WHERE username=?"
+            db.execute(query, (username,))
+            db_user = db.fetchone()
+        user = DBUser(db_user["username"], db_user["key"], db_user["salt"], db_user["oanda_account"]
+                      , db_user["oanda_api"], db_user["news_api"], db_user["alpha_vantage_api"])
+        return user
+
+
+class DBObject(object):
+    pass
+
+class DBTransaction(DBObject):
     def __init__(self, id, name, quantity, price, pnl, cancelled):
         self.id = id
         self.name = name
@@ -211,13 +239,24 @@ class DBTransaction(object):
         self.pnl = pnl
         self.cancelled = cancelled
 
-class DBPosition(object):
+class DBPosition(DBObject):
     def __init__(self, name, prms_units, prms_avg_price):
         self.name = name
         self.prms_units = round(prms_units,2)
         self.prms_avg_price = round(prms_avg_price,2)
 
-class DBPieChartData(object):
+class DBPieChartData(DBObject):
     def __init__(self, name, MarketVal):
         self.name = name
         self.MarketVal = round(MarketVal,2)
+
+class DBUser(DBObject):
+    def __init__(self, username, key, salt, oanda_account, oanda_api, news_api, alpha_vantage_api):
+        self.username = username
+        self.key = key
+        self.salt = salt
+        self.oanda_account = oanda_account
+        self.oanda_api = oanda_api
+        self.news_api = news_api
+        self.alpha_vantage_api = alpha_vantage_api
+

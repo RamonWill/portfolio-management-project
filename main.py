@@ -1,9 +1,11 @@
 import tkinter as tk
 from tkinter import messagebox
 from navigation import Navbar
-from views import HomePage, AboutWindow, CalculationsWindow
+from views import HomePage, AboutWindow, CalculationsWindow, LoginWindow
 from external_connections import NewsConnection, AlphaVantageAPI, OandaConnection
 from models import PRMS_Database
+from authentication import Authenticator
+
 # Portfolio Reconciliation and Management System (PRMS)
 
 
@@ -17,6 +19,7 @@ class Application(tk.Tk):
         self.geometry("1024x600")
         self.resizable(0, 0)
         self.db = PRMS_Database()
+
         self.alphavantage_connection = AlphaVantageAPI(api_key="UHJKNP33E9D8KCRS")
         self.news_connection = NewsConnection("3fd4076c2a15490ca9a979cd52429448")
         self.oanda_connection  = OandaConnection(account_id="101-004-18515982-001", api_key="96732e2978c2339ada31ef16971308fd-5ef54f7a26646a169d04a02befb786ca")
@@ -24,6 +27,9 @@ class Application(tk.Tk):
         self.show_frame(HomePage)
         menubar = Navbar(root=self)
         tk.Tk.config(self, menu=menubar)
+
+        self.authenticator = Authenticator(self.db)
+        LoginWindow(parent=self, authenticator=self.authenticator)
 
     def show_frame(self, name):
         self.current_page.destroy()
@@ -46,6 +52,10 @@ class Application(tk.Tk):
         saved_instruments = self.db.store_instruments(all_instruments)
         messagebox.showinfo(message=f"{saved_instruments} saved.", title="Database Refresh")
 
+    def set_connections(self, oanda_account, oanda_api, news_api, alpha_vantage_api):
+        self.alphavantage_connection = AlphaVantageAPI(api_key=alpha_vantage_api)
+        self.news_connection = NewsConnection(news_api)
+        self.oanda_connection  = OandaConnection(account_id=oanda_account, api_key=oanda_api)
     def quit_application(self):
         self.destroy()
 
