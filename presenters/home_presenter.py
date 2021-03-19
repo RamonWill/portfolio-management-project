@@ -1,4 +1,5 @@
 from custom_objects import Reconciliation
+import pandas as pd
 
 class HomePresenter(object):
     def __init__(self, view, db, news, oanda):
@@ -21,3 +22,8 @@ class HomePresenter(object):
         rec = Reconciliation(oanda_positions, prms_positions)
         rec_status = rec.num_matches()
         self.view.display_rec_status(rec_status)
+
+    def create_pie_data(self):
+        pie_data = self._db.get_largest_positions()
+        df_pie_data = pd.DataFrame([vars(header) for header in pie_data])
+        self.view.draw_pie_chart(df_pie_data)

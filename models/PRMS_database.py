@@ -189,6 +189,19 @@ class PRMS_Database(object):
             prms_positions.append(p)
         return prms_positions
 
+    def get_largest_positions(self):
+        query = """SELECT name, SUM(quantity*price) as 'MarketVal'
+                    FROM All_Transactions
+                    WHERE cancelled = 0
+                    GROUP BY name
+                    ORDER BY ABS(SUM(quantity*price))DESC
+                    LIMIT 5;"""
+        with self.context as db:
+            db.execute(query)
+            db_positions = db.fetchall()
+        positions = [DBPieChartData(row["name"],row["MarketVal"]) for row in db_positions]
+        return positions
+
 class DBTransaction(object):
     def __init__(self, id, name, quantity, price, pnl, cancelled):
         self.id = id
@@ -203,3 +216,8 @@ class DBPosition(object):
         self.name = name
         self.prms_units = round(prms_units,2)
         self.prms_avg_price = round(prms_avg_price,2)
+
+class DBPieChartData(object):
+    def __init__(self, name, MarketVal):
+        self.name = name
+        self.MarketVal = round(MarketVal,2)

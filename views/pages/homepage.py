@@ -4,7 +4,8 @@ import webbrowser
 from ..basepage import BasePage
 from presenters import HomePresenter
 from custom_objects.datatable import DataTable
-
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import matplotlib.pyplot as plt
 
 class HomePage(BasePage):
     def __init__(self, parent, app):
@@ -58,6 +59,7 @@ class HomePage(BasePage):
 
     def _refresh_all(self):
         self.presenter.get_homepage_data()
+        self.initiate_pie_chart()
 
     def open_news_link(self, event):
         row_id = self.news_table.selection()
@@ -71,3 +73,46 @@ class HomePage(BasePage):
 
     def display_rec_status(self, status):
         self.label_rec_info["text"] = status
+
+    def initiate_pie_chart(self):
+        try:
+            if self.pie_canvas is not None:
+                self.pie_canvas.destory()
+        except AttributeError:
+            print("The Pie Chart is empty")
+        self.presenter.create_pie_data()
+
+    def draw_pie_chart(self, data=None):
+        if data is None:
+            print("Failed to generate pie chart. Are the positions empty?")
+            return None
+        market_vals = data["MarketVal"]
+        names = data["name"]
+
+        if len(names) == 0 or len(names) == 1:
+            explode = None
+        else:
+            explode = tuple([0.1]+[0.05]*(len(names)-1))
+
+        colors = ["#377E9B", "#559CB9", "#7DC4E1", "#AFF6FF", "#D7FFFF"]
+        fig = plt.Figure(figsize=(4, 4), facecolor="#d4d8d9")
+        ax_pie = fig.add_subplot(111)
+        ax_pie.pie(market_vals,
+                   colors=colors,
+                   explode=explode,
+                   pctdistance=0.85,
+                   startangle=90)
+        centre_circle = plt.Circle((0, 0), 0.70, fc="#d4d8d9")
+        ax_pie.add_artist(centre_circle)
+        ax_pie.axis("equal")
+        ax_pie.set_title("Largest Positions")
+        pie_legend = ax_pie.legend(names,
+                                   loc='upper left',
+                                   bbox_to_anchor=(0.74, 0.35),
+                                   fontsize=6)
+        pie_frame = pie_legend.get_frame()
+        pie_frame.set_facecolor("#babebf")
+        pie_frame.set_edgecolor("#000000")
+        canvas = FigureCanvasTkAgg(fig, self.pie_chart)
+        self.pie_canvas = canvas.get_tk_widget()
+        self.pie_canvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
