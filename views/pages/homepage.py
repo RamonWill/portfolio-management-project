@@ -68,3 +68,6 @@ class HomePage(BasePage):
         self.news_table.set_datatable_from_object(articles)
         self.account_table.set_datatable_from_object(account_summary)
         self.prices_table.set_datatable_from_object(securities)
+
+    def display_rec_status(self, status):
+        self.label_rec_info["text"] = status

@@ -152,6 +152,43 @@ class PRMS_Database(object):
         return f"Order ID {id} stored to the database"
 
 
+    def get_db_positions(self):
+        # This query can be improved. previous query average wasn't weighted.
+        # here i weight short trades vs long then average them both together,
+        query = """SELECT
+                    Instrument as 'name',
+                    SUM([Units]) as 'prms_units',
+                    AVG([Price]) as 'prms_avg_price'
+                FROM
+                (
+                    SELECT
+                        a.name as 'Instrument',
+                        CASE WHEN a.quantity < 0 then SUM(a.quantity) else 0 end as 'Units',
+                        CASE WHEN a.quantity < 0 then SUM(a.quantity*a.price)/SUM(a.quantity) else 0 end as 'Price'
+                        from All_Transactions a
+                    WHERE a.cancelled = 0 AND a.quantity < 0
+                    GROUP BY a.name
+                    HAVING 'Price' > 0
+                    UNION ALL
+                    SELECT
+                        b.name as 'Instrument',
+                        CASE WHEN b.quantity > 0 then SUM(b.quantity) else 0 end as 'Units',
+                        CASE WHEN b.quantity > 0 then SUM(b.quantity*b.price)/SUM(b.quantity) else 0 end as 'Price'
+                        FROM All_Transactions b
+                    WHERE b.cancelled = 0 AND b.quantity > 0
+                    GROUP BY b.name
+                    HAVING 'Price' > 0)
+                GROUP BY Instrument """
+
+        with self.context as db:
+            db.execute(query)
+            db_positions = db.fetchall()
+        prms_positions = []
+        for position in db_positions:
+            p = DBPosition(position["name"], position["prms_units"], position["prms_avg_price"])
+            prms_positions.append(p)
+        return prms_positions
+
 class DBTransaction(object):
     def __init__(self, id, name, quantity, price, pnl, cancelled):
         self.id = id
@@ -160,4 +197,9 @@ class DBTransaction(object):
         self.price = price
         self.pnl = pnl
         self.cancelled = cancelled
-        
+
+class DBPosition(object):
+    def __init__(self, name, prms_units, prms_avg_price):
+        self.name = name
+        self.prms_units = round(prms_units,2)
+        self.prms_avg_price = round(prms_avg_price,2)

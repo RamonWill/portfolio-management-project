@@ -1,3 +1,5 @@
+from custom_objects import Reconciliation
+
 class HomePresenter(object):
     def __init__(self, view, db, news, oanda):
         self.view = view
@@ -13,4 +15,9 @@ class HomePresenter(object):
         sorted_keys = ",".join(instrument_keys)  # A sorted string
         tradeable_instruments = self._oanda.get_live_prices(instruments=sorted_keys)
         self.view.display_data(news_articles, account_summary, tradeable_instruments)
-        pass
+
+        oanda_positions = self._oanda.live_positions(detail="advanced")
+        prms_positions = self._db.get_db_positions()
+        rec = Reconciliation(oanda_positions, prms_positions)
+        rec_status = rec.num_matches()
+        self.view.display_rec_status(rec_status)
