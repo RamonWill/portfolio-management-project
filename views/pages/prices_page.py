@@ -2,11 +2,15 @@ import tkinter as tk
 from tkinter import ttk
 from ..basepage import BasePage
 from custom_objects.datatable import DataTable
-
+from presenters import PricesPresenter
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
+import matplotlib.pyplot as plt
 
 class PricesPage(BasePage):
     def __init__(self, parent, app):
         super().__init__(parent)
+
+        self.presenter = PricesPresenter(view=self, alpha_vantage=app.alphavantage_connection)
 
         frame_options = tk.LabelFrame(self, self.frame_styles,
                                       text="Create a Chart")
@@ -59,12 +63,48 @@ class PricesPage(BasePage):
                               command=self.initiate_chart)
         btn_draw.place(relx=0.64, rely=0.8)
 
-        self.positions_table = DataTable(frame_price)
-        self.positions_table.place(relheight=1, relwidth=1)
+        self.price_table = DataTable(frame_price)
+        self.price_table.place(relheight=1, relwidth=1)
 
         self.canvas1 = None
         self.toolbar = None
 
+    def display_prices(self, prices):
+        self.price_table.set_datatable_from_object(prices)
+
 
     def initiate_chart(self):
-        pass
+        self.remove_existing_chart()
+        period = self.period.get()
+        indicator = self.indicator.get()
+        ccy1 = self.entry_ccy1.get()
+        ccy2 = self.entry_ccy2.get()
+        self.presenter.create_chart(period=period, indicator=indicator,
+                                    currency1=ccy1, currency2=ccy2)
+
+    def remove_existing_chart(self):
+        if self.canvas1 is not None:
+            self.canvas1.destroy()
+        if self.toolbar is not None:
+            self.toolbar.destroy()
+
+    def draw_chart(self, indicator=None):
+        figure = plt.Figure(figsize=(4, 5), facecolor="#f0f6f7", dpi=80)
+        axis = figure.add_subplot(111)
+        axis.tick_params(axis="x", labelsize=8)
+
+        rsi_check = bool(indicator == "RSI")
+        ti_list = {"RSI", "SMA", "EMA"}
+        df = self.price_table.stored_dataframe
+        if indicator not in ti_list:
+            df.plot(kind="line", x="date", y="close_price", ax=axis)
+        else:
+            df.plot(kind="line", x="date",
+                      y="value", ax=axis)
+
+        canvas = FigureCanvasTkAgg(figure, self.canvas_chart)
+        self.canvas1 = canvas.get_tk_widget()
+        self.canvas1.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+        self.toolbar = NavigationToolbar2Tk(canvas, self.chart_toolbar)
+
+        canvas._tkcanvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)

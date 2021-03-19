@@ -64,7 +64,10 @@ class TradeBookingsPage(BasePage):
         self.presenter.get_transactions()
 
     def add_transaction(self):
-        pass
+        name = self.entry_name.get()
+        quantity = self.entry_quantity.get()
+        price = self.entry_price.get()
+        self.presenter.store_transaction(name, quantity, price)
 
     def display_transactions(self, transactions):
         self.transactions_table.set_datatable_from_object(transactions)

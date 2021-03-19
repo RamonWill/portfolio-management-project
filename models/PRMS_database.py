@@ -121,6 +121,36 @@ class PRMS_Database(object):
             credentials = db.fetchall()
         return credentials
 
+    def _generateId(self):
+        with self.context as db:
+            db.execute("""SELECT MAX(TRIM(id, 'C'))
+                              FROM all_transactions
+                              WHERE id LIKE 'C%' """)
+            last_id = db.fetchone()[0]
+
+        if last_id is None:
+            new_id = "C{:04n}".format(1)
+        else:
+            new_id = "C{:04n}".format(int(last_id)+1)
+
+        return new_id
+
+    def save_transaction(self, name, units, price):
+
+        id = self._generateId()
+
+        placeholders = {"id": id,
+                        "name": name,
+                        "quantity": units,
+                        "price": price,
+                        "pnl": 0,
+                        "cancelled": 0
+                        }
+        with self.context as db:
+            db.execute("""INSERT INTO All_Transactions
+                                VALUES (:id, :name, :quantity, :price, :pnl, :cancelled)""", placeholders)
+        return f"Order ID {id} stored to the database"
+
 
 class DBTransaction(object):
     def __init__(self, id, name, quantity, price, pnl, cancelled):

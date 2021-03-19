@@ -12,3 +12,17 @@ class TradeBookingsPresenter(object):
     def get_transactions(self):
         db_transactions = self._db.get_transactions()
         self.view.display_transactions(transactions=db_transactions)
+
+    def store_transaction(self, name, quantity, price):
+        try:
+            q = float(quantity)
+            p = float(price)
+        except ValueError:
+            messagebox.showerror(message="invalid price or quantity", title="Invalid Entry")
+            return None
+        if float(price)<0:
+            messagebox.showerror(message="the price cannot be a negative number", title="Invalid Entry")
+            return None
+        status = self._db.save_transaction(name, quantity, price)
+        messagebox.showinfo(message=status, title="Transactions Saved")
+        self.get_transactions()

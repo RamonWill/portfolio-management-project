@@ -71,8 +71,9 @@ class FXPriceData(ConnectionObject):
 class FXIndicatorData(ConnectionObject):
     def __init__(self, date, indicator, value):
         self.date = date
-        self.indicator = indicator
         self.value = float(value)
+        self.indicator = indicator
+
 
     def __repr__(self):
         return f"{self.date} {self.indicator}: {self.close_price}"
