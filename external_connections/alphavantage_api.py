@@ -37,7 +37,7 @@ class AlphaVantageAPI(object):
             close_price = all_fx_prices_dict[date]["4. close"]
             fx_price = FXPriceData(date, close_price)
             all_close_prices.append(fx_price)
-
+        all_close_prices.sort(key=lambda x: x.date)
         return all_close_prices
 
     def get_fx_prices_with_techincal(self, intervals, from_symbol, to_symbol, technical_indicator):
