@@ -1,3 +1,9 @@
+[![Forks][forks-shield]][forks-url]
+[![Stargazers][stars-shield]][stars-url]
+[![Issues][issues-shield]][issues-url]
+[![MIT License][license-shield]][license-url]
+
+
 # Portfolio Management Project (PRMSystem)
 A basic porfolio management system written in Python's standard GUI package, Tkinter.
 
@@ -63,3 +69,13 @@ The image below will redirect you to the video demo on Youtube
 <img src="screenshots/ss-marketorder.png" width="350">
 <img src="screenshots/ss-manualentry.png" width="350">
 <img src="screenshots/ss-algotrading.png" width="350">
+
+
+[forks-shield]: https://img.shields.io/github/forks/RamonWill/portfolio-management-project.svg?style=for-the-badge
+[forks-url]: https://github.com/RamonWill/portfolio-management-project/network/members
+[stars-shield]: https://img.shields.io/github/stars/RamonWill/portfolio-management-project.svg?style=for-the-badge
+[stars-url]: https://github.com/RamonWill/portfolio-management-project/stargazers
+[issues-shield]: https://img.shields.io/github/issues/RamonWill/portfolio-management-project.svg?style=for-the-badge
+[issues-url]: https://github.com/RamonWill/portfolio-management-project/issues
+[license-shield]: https://img.shields.io/github/license/RamonWill/portfolio-management-project.svg?style=for-the-badge
+[license-url]: https://github.com/RamonWill/portfolio-management-project/blob/master/LICENSE.txt
