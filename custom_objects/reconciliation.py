@@ -8,8 +8,10 @@ class Reconciliation(object):
     def generate_rec(self):
         df_oanda = pd.DataFrame([vars(header) for header in self.oanda_positions])
         df_prms = pd.DataFrame([vars(header) for header in self.prms_positions])
-        if len(df_oanda)==0 and len(df_prms)==0:
-            return None
+        if df_oanda.empty:
+            df_oanda = pd.DataFrame(columns=["name", "units", "avg_price", "unrel_pnl", "pnl"])
+        if df_prms.empty:
+            df_prms = pd.DataFrame(columns=["name", "prms_units", "prms_avg_price"])
         rec = df_oanda.merge(df_prms, on="name", how="outer")
         rec["Position Diff"] = rec["units"] - rec["prms_units"]
         rec["Price Diff"] = rec["avg_price"] - rec["prms_avg_price"]

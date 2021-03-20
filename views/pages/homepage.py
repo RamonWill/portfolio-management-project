@@ -83,7 +83,7 @@ class HomePage(BasePage):
         self.presenter.create_pie_data()
 
     def draw_pie_chart(self, data=None):
-        if data is None:
+        if data.empty:
             print("Failed to generate pie chart. Are the positions empty?")
             return None
         market_vals = data["MarketVal"]
