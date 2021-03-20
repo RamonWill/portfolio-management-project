@@ -1,6 +1,4 @@
-
 class FinanceCalculator:
-
     @staticmethod
     def treasury_to_decimal(price):
         """

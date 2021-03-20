@@ -10,8 +10,7 @@ class OrderPresenter(object):
 
     def execute_trade(self, units, instrument, acknowledged=False):
         if not acknowledged:
-            info = ("The trade is not acknowledged.\n"
-                    "Your order has not been sent.")
+            info = "The trade is not acknowledged.\n" "Your order has not been sent."
         else:
             fill = self._oanda.market_order(units, instrument)
             self._db.record_trade(fill)

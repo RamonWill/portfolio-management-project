@@ -1,6 +1,7 @@
 from custom_objects import Reconciliation
 import pandas as pd
 
+
 class HomePresenter(object):
     def __init__(self, view, db, news, oanda):
         self.view = view

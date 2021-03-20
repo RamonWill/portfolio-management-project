@@ -1,5 +1,6 @@
 import pandas as pd
 
+
 class Reconciliation(object):
     def __init__(self, oanda_positions, prms_positions):
         self.oanda_positions = oanda_positions
@@ -9,7 +10,9 @@ class Reconciliation(object):
         df_oanda = pd.DataFrame([vars(header) for header in self.oanda_positions])
         df_prms = pd.DataFrame([vars(header) for header in self.prms_positions])
         if df_oanda.empty:
-            df_oanda = pd.DataFrame(columns=["name", "units", "avg_price", "unrel_pnl", "pnl"])
+            df_oanda = pd.DataFrame(
+                columns=["name", "units", "avg_price", "unrel_pnl", "pnl"]
+            )
         if df_prms.empty:
             df_prms = pd.DataFrame(columns=["name", "prms_units", "prms_avg_price"])
         rec = df_oanda.merge(df_prms, on="name", how="outer")

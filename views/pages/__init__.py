@@ -5,5 +5,11 @@ from .positions_page import PositionsPage
 from .prices_page import PricesPage
 from .trade_bookings_page import TradeBookingsPage
 
-VIEW_PAGES = (HomePage, OrderPage, PositionsPage, PositionsRecPage, PricesPage,
-TradeBookingsPage,)
+VIEW_PAGES = (
+    HomePage,
+    OrderPage,
+    PositionsPage,
+    PositionsRecPage,
+    PricesPage,
+    TradeBookingsPage,
+)

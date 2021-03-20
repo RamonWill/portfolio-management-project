@@ -20,8 +20,12 @@ class NewsConnection(object):
             return []
 
         uri = "https://newsapi.org/v2/top-headlines?"
-        params = {"apiKey": self.api_key, "category": category,
-                  "country": country, "pageSize": 20}
+        params = {
+            "apiKey": self.api_key,
+            "category": category,
+            "country": country,
+            "pageSize": 20,
+        }
         response = requests.get(uri, params=params)
         all_headlines = response.json()
         p = json.loads(response.content)
@@ -33,6 +37,7 @@ class NewsConnection(object):
             article = Articles(source, title, url)
             articles.append(article)
         return articles
+
 
 class Articles(ConnectionObject):
     def __init__(self, source, title, url):

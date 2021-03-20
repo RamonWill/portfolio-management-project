@@ -21,10 +21,10 @@ class AboutWindow(BaseWindow):
         improved my knowledge on a variety of python libraries, APIs and SQL\n
         it has also been very helpful on increasing my understanding of\n
         Functions and OOP."""
-        frame1 = tk.LabelFrame(self.base_frame, self.frame_styles,
-                               text="Thank you for viewing")
+        frame1 = tk.LabelFrame(
+            self.base_frame, self.frame_styles, text="Thank you for viewing"
+        )
         frame1.pack(expand=True, fill="both")
 
-        label = tk.Label(frame1, text=bio,
-                         font=("Trebuchet MS", 9), bg="#94b4d1")
+        label = tk.Label(frame1, text=bio, font=("Trebuchet MS", 9), bg="#94b4d1")
         label.pack(expand=True)

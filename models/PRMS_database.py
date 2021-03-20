@@ -2,13 +2,14 @@ import sqlite3
 from pathlib import Path
 from collections import namedtuple
 
+
 class DBContext(object):
     def __init__(self, db_file=""):
         self.db_file = db_file
         self.connection_status = Path(db_file).exists()
 
     def __enter__(self):
-        self.conn= sqlite3.connect(self.db_file)
+        self.conn = sqlite3.connect(self.db_file)
         self.conn.row_factory = sqlite3.Row
         self.cur = self.conn.cursor()
         return self.cur
@@ -23,6 +24,7 @@ class DBContext(object):
             self.conn.commit()
         self.conn.close()
 
+
 class PRMS_Database(object):
     def __init__(self):
         _DATABASE_NAME = "prms_database.db"
@@ -33,15 +35,17 @@ class PRMS_Database(object):
 
         if not self.context.connection_status:
             self._setup_database_tables()
-            self.context.connection_status=True
+            self.context.connection_status = True
         self.is_connected = self.context.connection_status
 
     def get_db_instruments(self):
         """ Extracts a list of all instruments from the source database."""
         with self.context as db:
-            db.execute("""SELECT name, displayName
+            db.execute(
+                """SELECT name, displayName
                                 FROM Instruments
-                                ORDER BY displayName;""")
+                                ORDER BY displayName;"""
+            )
             instrument_table = db.fetchall()
         instrument_pairs = {row["name"]: row["displayName"] for row in instrument_table}
         return instrument_pairs
@@ -54,7 +58,9 @@ class PRMS_Database(object):
         with self.context as db:
             for name, display_name in oanda_instruments.items():
                 if name not in db_names:
-                    db.execute(insert_query, {"name":name, "displayName":display_name})
+                    db.execute(
+                        insert_query, {"name": name, "displayName": display_name}
+                    )
                     count += 1
         return count
 
@@ -68,20 +74,32 @@ class PRMS_Database(object):
                 profit = fill["orderFillTransaction"]["pl"]
                 cancelled = 0
                 with self.context as db:
-                    values = {"id":id,"name":instrument,"quantity":units,"price":price,"profit":profit, "cancelled":cancelled}
+                    values = {
+                        "id": id,
+                        "name": instrument,
+                        "quantity": units,
+                        "price": price,
+                        "profit": profit,
+                        "cancelled": cancelled,
+                    }
                     insert_query = "INSERT INTO All_Transactions VALUES (:id, :name, :quantity, :price, :profit, :cancelled);"
                     db.execute(insert_query, values)
-
 
     def _setup_database_tables(self):
         "Creates tables for the Database"
         with self.context as db:
-            db.execute("CREATE TABLE IF NOT EXISTS LoginInfo \
-                         (username TEXT, salt BLOB, key BLOB, oanda_api TEXT, oanda_account TEXT, news_api TEXT, alphaVantage_api TEXT)")
-            db.execute("CREATE TABLE IF NOT EXISTS Instruments\
-                         (name TEXT, displayName TEXT)")
-            db.execute("CREATE TABLE IF NOT EXISTS All_Transactions\
-                         (id TEXT, name TEXT, quantity REAL, price REAL, pnl REAL, cancelled INTEGER)")
+            db.execute(
+                "CREATE TABLE IF NOT EXISTS LoginInfo \
+                         (username TEXT, salt BLOB, key BLOB, oanda_api TEXT, oanda_account TEXT, news_api TEXT, alphaVantage_api TEXT)"
+            )
+            db.execute(
+                "CREATE TABLE IF NOT EXISTS Instruments\
+                         (name TEXT, displayName TEXT)"
+            )
+            db.execute(
+                "CREATE TABLE IF NOT EXISTS All_Transactions\
+                         (id TEXT, name TEXT, quantity REAL, price REAL, pnl REAL, cancelled INTEGER)"
+            )
 
         print(f"A new database has been created in {self.DB_PATH}")
 
@@ -93,8 +111,12 @@ class PRMS_Database(object):
         transactions = []
         for row in result:
             t = DBTransaction(
-                id=row["id"], name=row["name"], quantity=row["quantity"],
-                price=row["price"], pnl=row["pnl"], cancelled=row["cancelled"]
+                id=row["id"],
+                name=row["name"],
+                quantity=row["quantity"],
+                price=row["price"],
+                pnl=row["pnl"],
+                cancelled=row["cancelled"],
             )
             transactions.append(t)
 
@@ -102,35 +124,41 @@ class PRMS_Database(object):
 
     def cancelled_toggle(self, id, toggle):
         with self.context as db:
-            db.execute("""UPDATE all_Transactions
+            db.execute(
+                """UPDATE all_Transactions
                             SET cancelled = ?
-                            WHERE id = ?""", (toggle, id))
+                            WHERE id = ?""",
+                (toggle, id),
+            )
             result = db.rowcount
         if result == 0:
             return "Order ID does not exist in the database."
         else:
             return f"Changes have been made to Order ID {id}."
 
-
     def get_credentials(self):
         # I need to check the user first. so authenticator will need to be done first
         with self.context as db:
-            db.execute("SELECT oanda_api, oanda_account, news_api, alphaVantage_api\
-                        FROM LoginInfo;")
+            db.execute(
+                "SELECT oanda_api, oanda_account, news_api, alphaVantage_api\
+                        FROM LoginInfo;"
+            )
             credentials = db.fetchall()
         return credentials
 
     def _generateId(self):
         with self.context as db:
-            db.execute("""SELECT MAX(TRIM(id, 'C'))
+            db.execute(
+                """SELECT MAX(TRIM(id, 'C'))
                               FROM all_transactions
-                              WHERE id LIKE 'C%' """)
+                              WHERE id LIKE 'C%' """
+            )
             last_id = db.fetchone()[0]
 
         if last_id is None:
             new_id = "C{:04n}".format(1)
         else:
-            new_id = "C{:04n}".format(int(last_id)+1)
+            new_id = "C{:04n}".format(int(last_id) + 1)
 
         return new_id
 
@@ -138,18 +166,21 @@ class PRMS_Database(object):
 
         id = self._generateId()
 
-        placeholders = {"id": id,
-                        "name": name,
-                        "quantity": units,
-                        "price": price,
-                        "pnl": 0,
-                        "cancelled": 0
-                        }
+        placeholders = {
+            "id": id,
+            "name": name,
+            "quantity": units,
+            "price": price,
+            "pnl": 0,
+            "cancelled": 0,
+        }
         with self.context as db:
-            db.execute("""INSERT INTO All_Transactions
-                                VALUES (:id, :name, :quantity, :price, :pnl, :cancelled)""", placeholders)
+            db.execute(
+                """INSERT INTO All_Transactions
+                                VALUES (:id, :name, :quantity, :price, :pnl, :cancelled)""",
+                placeholders,
+            )
         return f"Order ID {id} stored to the database"
-
 
     def get_db_positions(self):
         # This query can be improved. previous query average wasn't weighted.
@@ -184,7 +215,9 @@ class PRMS_Database(object):
             db_positions = db.fetchall()
         prms_positions = []
         for position in db_positions:
-            p = DBPosition(position["name"], position["prms_units"], position["prms_avg_price"])
+            p = DBPosition(
+                position["name"], position["prms_units"], position["prms_avg_price"]
+            )
             prms_positions.append(p)
         return prms_positions
 
@@ -198,7 +231,9 @@ class PRMS_Database(object):
         with self.context as db:
             db.execute(query)
             db_positions = db.fetchall()
-        positions = [DBPieChartData(row["name"],row["MarketVal"]) for row in db_positions]
+        positions = [
+            DBPieChartData(row["name"], row["MarketVal"]) for row in db_positions
+        ]
         return positions
 
     def validate_registration(self, username):
@@ -210,11 +245,20 @@ class PRMS_Database(object):
         is_valid = user is None
         return is_valid
 
-    def store_user_credentials(self, username, hash, oanda_account, oanda_api, news_api, alpha_vantage_api):
+    def store_user_credentials(
+        self, username, hash, oanda_account, oanda_api, news_api, alpha_vantage_api
+    ):
         with self.context as db:
             query = "INSERT INTO LoginInfo VALUES (:username, :key, :salt, :oanda_api, :oanda_account, :news_api, :alphaVantage_api)"
-            values = {"username":username, "key":hash["key"], "salt":hash["salt"], "oanda_account":oanda_account,
-                      "oanda_api":oanda_api, "news_api":news_api, "alphaVantage_api":alpha_vantage_api}
+            values = {
+                "username": username,
+                "key": hash["key"],
+                "salt": hash["salt"],
+                "oanda_account": oanda_account,
+                "oanda_api": oanda_api,
+                "news_api": news_api,
+                "alphaVantage_api": alpha_vantage_api,
+            }
             db.execute(query, values)
 
     def get_user(self, username):
@@ -225,13 +269,21 @@ class PRMS_Database(object):
         if db_user is None:
             return None
         else:
-            user = DBUser(db_user["username"], db_user["key"], db_user["salt"], db_user["oanda_account"]
-                          , db_user["oanda_api"], db_user["news_api"], db_user["alphaVantage_api"])
+            user = DBUser(
+                db_user["username"],
+                db_user["key"],
+                db_user["salt"],
+                db_user["oanda_account"],
+                db_user["oanda_api"],
+                db_user["news_api"],
+                db_user["alphaVantage_api"],
+            )
             return user
 
 
 class DBObject(object):
     pass
+
 
 class DBTransaction(DBObject):
     def __init__(self, id, name, quantity, price, pnl, cancelled):
@@ -242,19 +294,24 @@ class DBTransaction(DBObject):
         self.pnl = pnl
         self.cancelled = cancelled
 
+
 class DBPosition(DBObject):
     def __init__(self, name, prms_units, prms_avg_price):
         self.name = name
-        self.prms_units = round(prms_units,2)
-        self.prms_avg_price = round(prms_avg_price,2)
+        self.prms_units = round(prms_units, 2)
+        self.prms_avg_price = round(prms_avg_price, 2)
+
 
 class DBPieChartData(DBObject):
     def __init__(self, name, MarketVal):
         self.name = name
-        self.MarketVal = round(MarketVal,2)
+        self.MarketVal = round(MarketVal, 2)
+
 
 class DBUser(DBObject):
-    def __init__(self, username, key, salt, oanda_account, oanda_api, news_api, alpha_vantage_api):
+    def __init__(
+        self, username, key, salt, oanda_account, oanda_api, news_api, alpha_vantage_api
+    ):
         self.username = username
         self.key = key
         self.salt = salt
@@ -262,4 +319,3 @@ class DBUser(DBObject):
         self.oanda_api = oanda_api
         self.news_api = news_api
         self.alpha_vantage_api = alpha_vantage_api
-

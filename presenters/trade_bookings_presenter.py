@@ -1,4 +1,6 @@
 from tkinter import messagebox
+
+
 class TradeBookingsPresenter(object):
     def __init__(self, view, db):
         self.view = view
@@ -18,10 +20,14 @@ class TradeBookingsPresenter(object):
             q = float(quantity)
             p = float(price)
         except ValueError:
-            messagebox.showerror(message="invalid price or quantity", title="Invalid Entry")
+            messagebox.showerror(
+                message="invalid price or quantity", title="Invalid Entry"
+            )
             return None
-        if float(price)<0:
-            messagebox.showerror(message="the price cannot be a negative number", title="Invalid Entry")
+        if float(price) < 0:
+            messagebox.showerror(
+                message="the price cannot be a negative number", title="Invalid Entry"
+            )
             return None
         status = self._db.save_transaction(name, quantity, price)
         messagebox.showinfo(message=status, title="Transactions Saved")

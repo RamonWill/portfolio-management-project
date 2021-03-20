@@ -21,7 +21,7 @@ class Application(tk.Tk):
         self.db = PRMS_Database()
         self.alphavantage_connection = AlphaVantageAPI(api_key="")
         self.news_connection = NewsConnection("")
-        self.oanda_connection  = OandaConnection(account_id="", api_key="")
+        self.oanda_connection = OandaConnection(account_id="", api_key="")
 
         self.current_page = tk.Frame()
         self.show_frame(HomePage)
@@ -51,12 +51,16 @@ class Application(tk.Tk):
     def refresh_db_instruments(self):
         all_instruments = self.oanda_connection.get_instruments()
         saved_instruments = self.db.store_instruments(all_instruments)
-        messagebox.showinfo(message=f"{saved_instruments} saved.", title="Database Refresh")
+        messagebox.showinfo(
+            message=f"{saved_instruments} saved.", title="Database Refresh"
+        )
 
     def set_connections(self, oanda_account, oanda_api, news_api, alpha_vantage_api):
         self.alphavantage_connection = AlphaVantageAPI(api_key=alpha_vantage_api)
         self.news_connection = NewsConnection(news_api)
-        self.oanda_connection  = OandaConnection(account_id=oanda_account, api_key=oanda_api)
+        self.oanda_connection = OandaConnection(
+            account_id=oanda_account, api_key=oanda_api
+        )
         self.show_frame(HomePage)
 
     def quit_application(self):

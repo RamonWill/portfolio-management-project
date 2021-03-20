@@ -2,7 +2,9 @@ from oandapyV20 import API
 from oandapyV20.endpoints import accounts, pricing, orders, positions
 from oandapyV20.exceptions import V20Error
 from external_connections.ConnectionObject import ConnectionObject
+
 # documentation - https://oanda-api-v20.readthedocs.io/en/latest/
+
 
 class OandaConnection(object):
     def __init__(self, api_key="", account_id=""):
@@ -16,7 +18,7 @@ class OandaConnection(object):
         try:
             account_details = accounts.AccountDetails(self._account_id)
             self._api_client.request(account_details)
-            self.connection_status=True
+            self.connection_status = True
         except V20Error:
             self.connection_status = False
 
@@ -45,12 +47,13 @@ class OandaConnection(object):
         return instrument_pairs
 
     def get_live_prices(self, instruments):
-        if not self.connection_status or len(instruments)==0:
+        if not self.connection_status or len(instruments) == 0:
             return []
 
         params_prices = {"instruments": instruments}
-        pricing_details = pricing.PricingInfo(accountID=self._account_id,
-                                              params=params_prices)
+        pricing_details = pricing.PricingInfo(
+            accountID=self._account_id, params=params_prices
+        )
         self._api_client.request(pricing_details)
         pricing_details = pricing_details.response
         pricing_details = pricing_details["prices"]
@@ -73,7 +76,7 @@ class OandaConnection(object):
 
         position_details = []
         # This violates DRY fix it
-        if detail =="basic":
+        if detail == "basic":
             for position in current_positions:
                 instrument = position["instrument"]
                 if int(position["short"]["units"]) < 0:
@@ -100,11 +103,13 @@ class OandaConnection(object):
                 units = position_data["units"]
                 pnl = position_data["pl"]
                 unrel_pnl = position_data["unrealizedPL"]
-                advanced_position = OandaPositionsAdvanced(instrument, units,avg_price,unrel_pnl,pnl)
+                advanced_position = OandaPositionsAdvanced(
+                    instrument, units, avg_price, unrel_pnl, pnl
+                )
                 position_details.append(advanced_position)
             return position_details
         else:
-            return None # throw error in future
+            return None  # throw error in future
 
     def market_order(self, units, instrument):
         # data must be organised as a JSON orderbody data (JSON (required)) to send
@@ -121,13 +126,13 @@ class OandaConnection(object):
         """
 
         datax = {
-          "order": {
-            "units": units,
-            "instrument": instrument,
-            "timeInForce": "FOK",
-            "type": "MARKET",
-            "positionFill": "DEFAULT"
-          }
+            "order": {
+                "units": units,
+                "instrument": instrument,
+                "timeInForce": "FOK",
+                "type": "MARKET",
+                "positionFill": "DEFAULT",
+            }
         }
         order = orders.OrderCreate(accountID=self._account_id, data=datax)
         self._api_client.request(order)
@@ -146,21 +151,31 @@ class OandaConnection(object):
         units = fill["orderFillTransaction"]["units"]
         price = fill["orderFillTransaction"]["price"]
         profit = fill["orderFillTransaction"]["pl"]
-        details = (fill_type, time, transid, account,
-                   id, instrument, units, price, profit)
+        details = (
+            fill_type,
+            time,
+            transid,
+            account,
+            id,
+            instrument,
+            units,
+            price,
+            profit,
+        )
 
-        fill_information = ("{}\n"
-                           "Execution Time: {}\n"
-                           "Request ID: {}\n"
-                           "Account ID: {}\n"
-                           "Order ID: {}\n\n"
-                           "Instrument: {}\n"
-                           "Units: {}\n"
-                           "Price: {}\n"
-                           "Gain/Loss: {}").format(*details)
+        fill_information = (
+            "{}\n"
+            "Execution Time: {}\n"
+            "Request ID: {}\n"
+            "Account ID: {}\n"
+            "Order ID: {}\n\n"
+            "Instrument: {}\n"
+            "Units: {}\n"
+            "Price: {}\n"
+            "Gain/Loss: {}"
+        ).format(*details)
 
         return fill_information
-
 
     def fil_cancellation(self, fill):
         fill_type = fill["orderCancelTransaction"]["type"]
@@ -171,18 +186,18 @@ class OandaConnection(object):
         time = fill["orderCancelTransaction"]["time"].replace("T", " ")
         instrument = fill["orderCreateTransaction"]["instrument"]
         units = fill["orderCreateTransaction"]["units"]
-        details = (fill_type, reason, account, id,
-                   time, instrument, units)
+        details = (fill_type, reason, account, id, time, instrument, units)
 
-        fill_information = ("{}\n"
-                           "Order Cancel Reason: {}\n"
-                           "Account ID: {}\n"
-                           "Order ID: {}\n\n"
-                           "Cancellation Time: {}\n"
-                           "Instrument: {}\n"
-                           "Units: {}\n").format(*details)
+        fill_information = (
+            "{}\n"
+            "Order Cancel Reason: {}\n"
+            "Account ID: {}\n"
+            "Order ID: {}\n\n"
+            "Cancellation Time: {}\n"
+            "Instrument: {}\n"
+            "Units: {}\n"
+        ).format(*details)
         return fill_information
-
 
     def execution_details(self, fill):
         """Converts a JSON trade confirmation into a readable string
@@ -208,16 +223,19 @@ class AccountSummary(ConnectionObject):
         self.balance = float(balance)
         self.currency = currency
 
+
 class OandaPrices(ConnectionObject):
     def __init__(self, instrument, bid, ask):
         self.instrument = instrument
         self.bid = float(bid)
         self.ask = float(ask)
 
+
 class OandaPositionsBasic(ConnectionObject):
     def __init__(self, name, units):
         self.name = name
         self.units = float(units)
+
 
 class OandaPositionsAdvanced(ConnectionObject):
     def __init__(self, name, units, avg_price, unrel_pnl, pnl):

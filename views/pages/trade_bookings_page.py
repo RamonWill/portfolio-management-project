@@ -37,23 +37,24 @@ class TradeBookingsPage(BasePage):
         self.entry_id = ttk.Entry(frame2, width=7, cursor="xterm")
         self.entry_id.place(rely=0.05, relx=0.35)
         self.check_val = tk.IntVar(parent)
-        cancel_btn = tk.Radiobutton(frame2, text="Uncancel",
-                                    variable=self.check_val, value=0,
-                                    bg="#94b4d1")
+        cancel_btn = tk.Radiobutton(
+            frame2, text="Uncancel", variable=self.check_val, value=0, bg="#94b4d1"
+        )
         cancel_btn.place(rely=0.3, relx=0.35)
-        uncancel_btn = tk.Radiobutton(frame2, text="Cancel",
-                                      variable=self.check_val, value=1,
-                                      bg="#94b4d1")
+        uncancel_btn = tk.Radiobutton(
+            frame2, text="Cancel", variable=self.check_val, value=1, bg="#94b4d1"
+        )
         uncancel_btn.place(rely=0.5, relx=0.35)
 
-        btn_submit1 = ttk.Button(frame1, text="Insert",
-                                 command=self.add_transaction)
+        btn_submit1 = ttk.Button(frame1, text="Insert", command=self.add_transaction)
         btn_submit1.place(rely=0.75, relx=0.40)
-        btn_submit2 = ttk.Button(frame2, text="Amend Status",
-                                 command=self.change_status)
+        btn_submit2 = ttk.Button(
+            frame2, text="Amend Status", command=self.change_status
+        )
         btn_submit2.place(rely=0.70, relx=0.35)
-        btn_refresh = ttk.Button(frame1, text="Refresh",
-                                 command=self.refresh_transactions)
+        btn_refresh = ttk.Button(
+            frame1, text="Refresh", command=self.refresh_transactions
+        )
         btn_refresh.place(rely=0.75, relx=0.60)
 
         self.transactions_table = DataTable(frame3, axis="both")

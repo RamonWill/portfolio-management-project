@@ -17,4 +17,7 @@ class CalculationsPresenter(object):
             converted_price = FinanceCalculator.treasury_to_decimal(price)
             self.view.display_conversion(new_price=converted_price)
         except (ValueError, IndexError) as err:
-            messagebox.showinfo(message="An example of a valid price would be 108.50 or 108-16", title="Invalid Price")
+            messagebox.showinfo(
+                message="An example of a valid price would be 108.50 or 108-16",
+                title="Invalid Price",
+            )
