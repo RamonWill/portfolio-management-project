@@ -57,6 +57,7 @@ class Application(tk.Tk):
         self.alphavantage_connection = AlphaVantageAPI(api_key=alpha_vantage_api)
         self.news_connection = NewsConnection(news_api)
         self.oanda_connection  = OandaConnection(account_id=oanda_account, api_key=oanda_api)
+        self.show_frame(HomePage)
 
     def quit_application(self):
         if messagebox.askyesno("Exit", "Do you want to quit the application?"):

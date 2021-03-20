@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, messagebox
 from .basewindow import BaseWindow
 
 class RegistrationWindow(tk.Toplevel):
@@ -68,8 +68,11 @@ class RegistrationWindow(tk.Toplevel):
         oanda_acc = self.entry_oanda_acc.get()
         oanda_api = self.entry_oanda_api.get()
         alpha_vantage = self.entry_av.get()
-        result = self.authenticator.register_user(user, pw, oanda_acc, oanda_api, news, alpha_vantage)
-        if result:
-            self.destroy()
+        if user == "" or pw == "":
+            messagebox.showinfo(title="Information", message="You must enter a username and password")
+        else:
+            result = self.authenticator.register_user(user, pw, oanda_acc, oanda_api, news, alpha_vantage)
+            if result:
+                self.destroy()
 
 
