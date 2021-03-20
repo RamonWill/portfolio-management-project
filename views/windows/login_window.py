@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, messagebox
 from .basewindow import BaseWindow
 from .registration_window import RegistrationWindow
 
@@ -65,8 +65,25 @@ class LoginWindow(tk.Toplevel):
                     font=("Arial", 10, "bold"),
                     background="#74CAE3")
 
+        self.protocol("WM_DELETE_WINDOW", self.on_exit)
+
+    def on_exit(self):
+        self.root.quit_application()
+
     def login(self):
-        pass
+        user = self.entry_user.get()
+        pw = self.entry_pw.get()
+        db_user = self.authenticator.validate_login(username=user, password=pw)
+        if db_user is not None:
+            self.root.set_connections(db_user.oanda_account, db_user.oanda_api, db_user.news_api, db_user.alpha_vantage_api)
+            messagebox.showinfo("Login Successful", f"Welcome {user}")
+            self.root.deiconify()
+            self.destroy()
+        else:
+            return None
 
     def get_register(self):
-        RegistrationWindow(authenticator=self.authenticator)
+        register = RegistrationWindow(authenticator=self.authenticator)
+        register.focus_set()
+        register.grab_set()
+

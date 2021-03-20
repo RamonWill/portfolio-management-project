@@ -222,9 +222,12 @@ class PRMS_Database(object):
             query = "SELECT * FROM LoginInfo WHERE username=?"
             db.execute(query, (username,))
             db_user = db.fetchone()
-        user = DBUser(db_user["username"], db_user["key"], db_user["salt"], db_user["oanda_account"]
-                      , db_user["oanda_api"], db_user["news_api"], db_user["alpha_vantage_api"])
-        return user
+        if db_user is None:
+            return None
+        else:
+            user = DBUser(db_user["username"], db_user["key"], db_user["salt"], db_user["oanda_account"]
+                          , db_user["oanda_api"], db_user["news_api"], db_user["alphaVantage_api"])
+            return user
 
 
 class DBObject(object):

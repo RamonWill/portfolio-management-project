@@ -19,10 +19,10 @@ class Application(tk.Tk):
         self.geometry("1024x600")
         self.resizable(0, 0)
         self.db = PRMS_Database()
+        self.alphavantage_connection = AlphaVantageAPI(api_key="")
+        self.news_connection = NewsConnection("")
+        self.oanda_connection  = OandaConnection(account_id="", api_key="")
 
-        self.alphavantage_connection = AlphaVantageAPI(api_key="UHJKNP33E9D8KCRS")
-        self.news_connection = NewsConnection("3fd4076c2a15490ca9a979cd52429448")
-        self.oanda_connection  = OandaConnection(account_id="101-004-18515982-001", api_key="96732e2978c2339ada31ef16971308fd-5ef54f7a26646a169d04a02befb786ca")
         self.current_page = tk.Frame()
         self.show_frame(HomePage)
         menubar = Navbar(root=self)
@@ -30,6 +30,7 @@ class Application(tk.Tk):
 
         self.authenticator = Authenticator(self.db)
         LoginWindow(parent=self, authenticator=self.authenticator)
+        self.protocol("WM_DELETE_WINDOW", self.quit_application)
 
     def show_frame(self, name):
         self.current_page.destroy()
@@ -56,14 +57,13 @@ class Application(tk.Tk):
         self.alphavantage_connection = AlphaVantageAPI(api_key=alpha_vantage_api)
         self.news_connection = NewsConnection(news_api)
         self.oanda_connection  = OandaConnection(account_id=oanda_account, api_key=oanda_api)
+
     def quit_application(self):
-        self.destroy()
+        if messagebox.askyesno("Exit", "Do you want to quit the application?"):
+            self.destroy()
 
 
 if __name__ == "__main__":
     root = Application()
-    authenticator = None  # This will be the login/register tasks might need to communicate with the application so maybe
-    # make the application withdraw itself? login then if successful update the apis from the db..
-    #root.withdraw()
+    root.withdraw()
     root.mainloop()
-

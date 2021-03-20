@@ -21,6 +21,8 @@ class OandaConnection(object):
             self.connection_status = False
 
     def account_summary(self):
+        if not self.connection_status:
+            return []
         account_endpoint = accounts.AccountDetails(self._account_id)
         self._api_client.request(account_endpoint)
         account_data = account_endpoint.response

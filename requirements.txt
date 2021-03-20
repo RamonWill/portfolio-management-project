@@ -4,3 +4,4 @@ numpy
 oandapyV20
 pandas
 requests
+bcrypt
